@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">बोध कृषि</string>
+    <string name="title_activity_settings">सेटिंग्स</string>
+    <string name="section1_format">Actuator node association</string>
+    <string name="section2_format">Actuator node config</string>
+    <string name="section3_format">schedule</string>
+    <string name="action_settings">Settings</string>
+    <string name="welcome">विन्यास</string>
+    <string name="opendb">डेटाबेस खोले</string>
+    <string name="Language">English Lang</string>
+    <string name="port">port</string>
+</resources>
