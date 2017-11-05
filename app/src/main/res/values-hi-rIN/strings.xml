@@ -9,4 +9,8 @@
     <string name="opendb">डेटाबेस खोले</string>
     <string name="Language">English Lang</string>
     <string name="port">port</string>
+    <string name="markerDescription">enter node description</string>
+    <string name="markerTitle">Enter title for Node</string>
+    <string name="saveMarker">Save</string>
+    <string name="cancelMarker">Cancel</string>
 </resources>

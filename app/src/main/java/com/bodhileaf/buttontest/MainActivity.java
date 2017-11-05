@@ -1,20 +1,19 @@
 package com.bodhileaf.buttontest;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast ;
 import android.database.sqlite.*;
 
-import java.net.URISyntaxException;
+import java.sql.ResultSet;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -23,7 +22,7 @@ static int a=0;
     private static final int FILE_SELECT_CODE = 0;
     private void showFileChooser() {
         Intent  intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*.db");
+        intent.setType("*/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         try {
@@ -47,20 +46,66 @@ static int a=0;
                     Log.d("onActivity", "File Uri: " + uri.toString());
                     // Get the path
                     String path = null;
-                    try {
-                        path = FileUtils.getPath(this, uri  );
-                    } catch (URISyntaxException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d("onActivity", "File Path: " + path);
+                    String filename = null;
+
+                    path = FileUtils.getPath(MainActivity.this, uri);
+                    Log.d("MainActivity", "Actual File Path: " + path);
                     // Get the file instance
-                    // File file = new File(path);
-                    // Initiate the upload
+
+                    Cursor  cursor = null;
+
+                    try {
+                        cursor = getContentResolver().query(uri, null, null, null, null);
+                        int column_index = cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
+                        if (cursor.moveToFirst()) {
+                            filename = cursor.getString(column_index);
+                        }
+                        Log.d("onActivity", "File path: " + path+ "Name:" + filename);
+                        SQLiteDatabase agridb = openOrCreateDatabase(path,MODE_PRIVATE ,null ) ;
+                        qualifyDB(agridb);
+                        agridb.execSQL("insert into nodesInfo(nodeID,nodeType) values(\"104\",\"122\") ");
+                        Cursor  resultSet = agridb.rawQuery("Select nodeID from nodesInfo",null);
+                        resultSet.moveToFirst();
+                        String username = resultSet.getString(0);
+                        String password = resultSet.getString(1);
+                        Toast.makeText(getApplicationContext(), username+"  "+password , Toast.LENGTH_LONG).show();
+
+
+
+                    } catch (Exception e) {
+                        // Eat it
+                    }
                 }
+
                 break;
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+    // Sanity check if the opened db is not corrupted and matches the required table schemas
+    private void qualifyDB(SQLiteDatabase selectDB) {
+        SQLiteDatabase compareDB = openOrCreateDatabase("golden.db",MODE_PRIVATE,null);
+        Cursor results = selectDB.rawQuery("SELECT name FROM sqlite_master WHERE type='table'",null);
+        results.moveToFirst();
+        do {
+            Log.d("database tables", "qualifyDB: "+results.getString(0));
+            if (results.getString(0) != "android_metadata") {
+                String query = "SELECT sql FROM sqlite_master WHERE name ='" + results.getString(0) + "'";
+                Cursor schemaResults = selectDB.rawQuery(query, null);
+                schemaResults.moveToFirst();
+                //Log.d("database tables", "schema query result: " + schemaResults.getString(0));
+            }
+        }while (results.moveToNext());
+
+    }
+
+    // Create new DB which copies table schemas from golden db
+    private void createNewDB(String path) {
+        SQLiteDatabase baseDB = openOrCreateDatabase("golden.db",MODE_PRIVATE,null);
+
+
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,19 +128,20 @@ static int a=0;
                 //setContentView(R.layout.activity_config);
             }
         });
-        Button  opendb = (Button ) findViewById(R.id.button2 );
-        opendb.setOnClickListener(new View.OnClickListener() {
+        Button  openMaps = (Button ) findViewById(R.id.openMaps);
+        openMaps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SQLiteDatabase mydb = openOrCreateDatabase("arvind.db",MODE_PRIVATE ,null ) ;
-                mydb.execSQL("CREATE TABLE IF NOT EXISTS pwdlist(Username VARCHAR,Password VARCHAR);");
-                mydb.execSQL("INSERT INTO pwdlist VALUES('admin','admin');");
-                Cursor  resultSet = mydb.rawQuery("Select * from pwdlist",null);
-                resultSet.moveToFirst();
-                String username = resultSet.getString(0);
-                String password = resultSet.getString(1);
-                Toast.makeText(getApplicationContext(), username+"  "+password , Toast.LENGTH_LONG).show();
-
+                //SQLiteDatabase mydb = openOrCreateDatabase("arvind.db",MODE_PRIVATE ,null ) ;
+                //mydb.execSQL("CREATE TABLE IF NOT EXISTS pwdlist(Username VARCHAR,Password VARCHAR);");
+                //mydb.execSQL("INSERT INTO pwdlist VALUES('admin','admin');");
+                //Cursor  resultSet = mydb.rawQuery("Select * from pwdlist",null);
+                //resultSet.moveToFirst();
+                //String username = resultSet.getString(0);
+                //String password = resultSet.getString(1);
+                //Toast.makeText(getApplicationContext(), username+"  "+password , Toast.LENGTH_LONG).show();
+                Intent mapsScreen  = new Intent(MainActivity.this, com.bodhileaf.buttontest.FarmMapsActivity.class);
+                startActivity(mapsScreen);
             }
         });
 

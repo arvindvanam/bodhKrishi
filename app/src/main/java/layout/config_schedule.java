@@ -1,5 +1,6 @@
 package layout;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.net.Uri;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 
 import com.bodhileaf.buttontest.EndDateFragment;
@@ -115,6 +117,13 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
             }
         });
 
+        Button saveButton = (Button) view.findViewById(R.id.configSaveButton);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().onBackPressed();
+            }
+        });
         return view;
     }
 

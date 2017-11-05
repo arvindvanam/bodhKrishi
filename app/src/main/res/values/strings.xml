@@ -15,4 +15,11 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="port">port</string>
     <string name="title_activity_farm_maps">FarmMap</string>
+    <string name="default_info_title">New place</string>
+    <string name="default_info_snippet">enter node details</string>
+    <string name="pick_place">place picker</string>
+    <string name="markerDescription">enter node description</string>
+    <string name="markerTitle">Enter title for Node</string>
+    <string name="saveMarker">Save</string>
+    <string name="cancelMarker">Cancel</string>
 </resources>
