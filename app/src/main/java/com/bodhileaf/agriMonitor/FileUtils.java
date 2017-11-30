@@ -1,10 +1,8 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -13,7 +11,6 @@ import android.net.Uri;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.Locale;
@@ -22,10 +19,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.provider.OpenableColumns;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
-import android.widget.Toast ;
 
 
 /**
@@ -33,7 +28,6 @@ import android.widget.Toast ;
  */
 
 import android.content.res.Configuration ;
-import android.content.res.Resources;
 
 public class FileUtils {
 

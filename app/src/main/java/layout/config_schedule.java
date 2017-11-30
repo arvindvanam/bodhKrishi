@@ -1,8 +1,9 @@
 package layout;
 
-import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -13,10 +14,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.bodhileaf.buttontest.EndDateFragment;
-import com.bodhileaf.buttontest.R;
-import com.bodhileaf.buttontest.StartDateFragment;
-import com.bodhileaf.buttontest.TimeFragment;
+import com.bodhileaf.agriMonitor.EndDateFragment;
+import com.bodhileaf.agriMonitor.R;
+import com.bodhileaf.agriMonitor.StartDateFragment;
+import com.bodhileaf.agriMonitor.TimeFragment;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -37,6 +42,9 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
     private String mParam1;
     private String mParam2;
     private View view;
+    private Integer nodeId;
+    private Integer nodeType;
+    private String dbFileName;
 
     private OnFragmentInteractionListener mListener;
 
@@ -71,6 +79,15 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle extras = getActivity().getIntent().getExtras();
+        if (extras == null) {
+            Log.d("schedule frag", "onCreate: null bundle ");
+            return;
+        }
+        nodeId = extras.getInt("nodeId");
+        nodeType = extras.getInt("nodeType");
+        dbFileName = extras.getString("dbFileName");
+        Log.d("schedule frag Node info", "onCreate: nodeid/nodetype "+ String.valueOf(nodeId)+"/"+String.valueOf(nodeType));
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -121,9 +138,78 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().onBackPressed();
+
+                SQLiteDatabase agriDb = getActivity().openOrCreateDatabase(dbFileName,android.content.Context.MODE_PRIVATE ,null);
+                EditText startDatePicker = (EditText) getActivity().findViewById(R.id.startDatePick);
+                EditText endDatePicker = (EditText) getActivity().findViewById(R.id.endDatePick);
+
+                EditText startTime = (EditText) getActivity().findViewById(R.id.timePick);
+                EditText scheduleId = (EditText) getActivity().findViewById(R.id.scheduleId);
+                EditText scheduleDuration = (EditText) getActivity().findViewById(R.id.durationInMin);
+    //            int start_hour;
+      //          int start_min;
+        //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          //          start_hour = startTime.getHour();
+            //        start_min = startTime.getMinute();
+              //  } else {
+                //    start_hour = startTime.getCurrentHour();
+                  //  start_min = startTime.getCurrentMinute();
+                //}
+
+
+                DateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
+                String startDateString = startDatePicker.getText().toString()+" "+startTime.getText().toString()+":00";
+                String endDateString = endDatePicker.getText().toString()+" "+startTime.getText().toString()+":00";
+
+
+                try {
+                    java.util.Date mDate = df.parse(startDateString);
+                    long start_time_ms = mDate.getTime();
+                    Log.d("date picker", "onClick: start Date in milli :: " + start_time_ms);
+                    mDate = df.parse(endDateString);
+                    long end_time_ms = mDate.getTime();
+                    Log.d("date picker", "onClick: End Date in milli :: " + end_time_ms);
+                    String query = String.format("SELECT * FROM scheduleList where nodeId=%d and scheduleId=%d",nodeId,
+                            Integer.parseInt(scheduleId.getText().toString()));
+                    //check if the schedule id exists for the node id
+                    Cursor nodeListResults = agriDb.rawQuery(query,null);
+                    if (nodeListResults.getCount() != 0 ) {
+                        query = String.format("DELETE FROM scheduleList where nodeId=%d and scheduleId=%d",nodeId,
+                                Integer.parseInt(scheduleId.getText().toString()));
+                        //check if the schedule id exists for the node id
+                        agriDb.execSQL(query);
+                        query = String.format("DELETE FROM scheduleInfo where nodeId=%d and scheduleId=%d",nodeId,
+                                Integer.parseInt(scheduleId.getText().toString()));
+
+                        //remove the entry
+                    }
+                        String insertRowQuery = String.format("INSERT INTO scheduleList(nodeId,scheduleId,startDate,endDate,startTime,duration) VALUES(%d,%s,'%s','%s','%s',%s)", nodeId, scheduleId.getText().toString(), startDatePicker.getText().toString(), endDatePicker.getText().toString(),startTime.getText().toString(), scheduleDuration.getText().toString());
+                        agriDb.execSQL(insertRowQuery);
+                    DateFormat cur_date_format= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        Log.d("config schedule", "onClick: row query" +insertRowQuery);
+                        for (long cur_date = start_time_ms; cur_date < end_time_ms; cur_date += 1000*60*60*24) {
+                            Log.d("config_schedule", String.format("onClick: date: " + cur_date_format.format(cur_date) ));
+                            insertRowQuery = String.format("INSERT INTO scheduleInfo(rowIndex,dateTimeValue,actuatorNodeId,duration,actionTaken,scheduleId) VALUES(%d,'%s',%d,'%s','PENDING',%d)", Integer.getInteger(scheduleId.getText().toString()), cur_date_format.format(cur_date), nodeId,scheduleDuration.getText().toString(),Integer.getInteger(scheduleId.getText().toString()));
+                            agriDb.execSQL(insertRowQuery);
+                        }
+                    agriDb.execSQL("drop TABLE IF EXISTS scheduleInfo_temp");
+                    agriDb.execSQL("CREATE TABLE scheduleInfo_temp(rowIndex INTEGER PRIMARY KEY, dateTimeValue TEXT NOT NULL, actuatorNodeID INT NOT NULL, duration INTEGER NOT NULL, actionTaken TEXT, scheduleId INTEGER)");
+                    agriDb.execSQL("INSERT INTO scheduleInfo_temp (dateTimeValue,actuatorNodeId,duration,actionTaken,scheduleId) SELECT dateTimeValue,actuatorNodeId,duration,actionTaken,scheduleId FROM scheduleInfo ORDER BY actuatorNodeId,dateTimeValue ");
+                    agriDb.execSQL("drop TABLE scheduleInfo");
+                    agriDb.execSQL("ALTER TABLE scheduleInfo_temp RENAME TO scheduleInfo");
+
+
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+
+
+
             }
         });
+        EditText nodeIdBox = (EditText) view.findViewById(R.id.nodeNumber);
+        CharSequence cs = String.valueOf(nodeId);
+        nodeIdBox.setText(cs);
         return view;
     }
 
@@ -169,6 +255,8 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
 
 
 }

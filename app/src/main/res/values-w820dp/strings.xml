@@ -4,4 +4,8 @@
     <string name="markerTitle">Enter title for Node</string>
     <string name="saveMarker">Save</string>
     <string name="cancelMarker">Cancel</string>
+    <string name="pick_action_maps">Choose Source for Maps</string>
+    <string name="nodeNum">100</string>
+    <string name="nodeType">1</string>
+    <string name="server_client_id">714657023114-anvi238rbaag81v9v8qa2hm7njieq01s.apps.googleusercontent.com</string>
 </resources>

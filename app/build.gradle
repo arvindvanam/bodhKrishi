@@ -1,10 +1,11 @@
 apply plugin: 'com.android.application'
 
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
     defaultConfig {
-        applicationId "com.bodhileaf.buttontest"
+        applicationId "com.bodhileaf.agriMonitor"
         minSdkVersion 21
         targetSdkVersion 26
         versionCode 1
@@ -42,8 +43,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:design:26.+'
-    compile 'com.google.android.gms:play-services-location:+'
-    compile 'com.google.android.gms:play-services-places:+'
+    compile 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
     testCompile 'junit:junit:4.12'
 }
 dependencies {
@@ -51,32 +51,19 @@ dependencies {
     compile 'com.android.support:design:26.1.0'
     compile 'com.android.support:recyclerview-v7:26.1.0'
     compile 'com.android.support:support-v13:26.1.0'
+    //noinspection GradleCompatible
+    compile 'com.google.android.gms:play-services-maps:11.6.0'
+    compile 'com.google.android.gms:play-services-location:11.6.0'
+    compile 'com.google.android.gms:play-services-places:11.6.0'
+    compile 'com.google.android.gms:play-services-auth:11.6.0'
+    compile 'com.google.android.gms:play-services-drive:11.6.0'
+    compile 'com.google.firebase:firebase-core:11.6.0'
 }
 dependencies {
     implementation 'com.android.support.constraint:constraint-layout:+'
-}
-dependencies {
-    implementation 'com.android.support.constraint:constraint-layout:+'
-}
-dependencies {
-    implementation 'com.google.android.gms:play-services-maps:+'
     implementation 'com.android.support:appcompat-v7:26.0.2'
-}
-dependencies {
-    implementation 'com.android.support:support-v4:26.0.2'
-}
-dependencies {
+
     implementation 'com.android.support:support-v4:26.+'
+    implementation 'com.android.support:recyclerview-v7:26.+'
 }
-dependencies {
-    implementation 'com.android.support:support-v4:26.+'
-}
-dependencies {
-    implementation 'com.android.support:support-v4:26.+'
-}
-dependencies {
-    implementation 'com.android.support:support-v4:26.+'
-}
-dependencies {
-    implementation 'com.android.support:support-v4:26.+'
-}
+apply plugin: 'com.google.gms.google-services'

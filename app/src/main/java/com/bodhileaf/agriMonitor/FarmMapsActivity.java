@@ -1,11 +1,12 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
 import android.app.AlertDialog;
 import android.app.DialogFragment;
-import android.app.Fragment;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v13.app.ActivityCompat;
@@ -13,12 +14,10 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
@@ -28,19 +27,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.PlaceReport;
 import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
-import java.text.DecimalFormat;
 
 public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCallback,MarkerDialogFragment.MarkerDialogListener  {
     private static final String TAG = FarmMapsActivity.class.getSimpleName();
@@ -76,10 +71,23 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     private String[] mLikelyPlaceAddresses;
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
+    private String dbFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            return;
+        }
+// get data via the key
+        dbFileName  = extras.getString("filename");
+        if (dbFileName == null) {
+            Log.d(TAG, "onreate: db filename missing" );
+            return;
+            // do something with the data
+        }
+        Log.d(TAG, "onreate: db filename "+dbFileName );
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -161,8 +169,30 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
-
-        mMap.addMarker(new MarkerOptions().position(mDefaultLocation).title("default location in Bengaluru"));
+        if (dbFileName == null) {
+            Log.d(TAG, "onMapReady: ERROR :no db file found" );
+        }
+        Log.d(TAG, "onMapReady: db filename "+dbFileName );
+        SQLiteDatabase farmDb = openOrCreateDatabase(dbFileName,MODE_PRIVATE ,null) ;
+        Cursor nodeListResults = farmDb.rawQuery("SELECT * FROM nodesInfo",null);
+        nodeListResults.moveToFirst();
+        do {
+            Double latLocation = nodeListResults.getDouble(2);
+            Double lonLocation = nodeListResults.getDouble(3);
+            Integer nodeID = nodeListResults.getInt(0);
+            Integer nodeType = nodeListResults.getInt(1);
+            String sensorType = null;
+            switch (nodeType) {
+                case 0: sensorType = "Air Soil Sensor Node"; break;
+                case 1: sensorType = "Water level Sensor Node"; break;
+                case 2: sensorType = "water flow & Actuator Node"; break;
+                default:
+                    break;
+            }
+            Log.d(TAG, "onMapReady: node: lat: "+Double.toString(latLocation)+" long :"+Double.toString(lonLocation) );
+            LatLng addLoc = new LatLng(latLocation,lonLocation);
+            mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)));
+        } while(nodeListResults.moveToNext());
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             /** Called when the user clicks a marker. */
@@ -174,13 +204,13 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
                 if (clickCount == null) {
                     clickCount = 0;
 
-                    // Retrieve the data from the marker.
+
                     DialogFragment newMarkerFragment = new MarkerDialogFragment();
                     newMarkerFragment.show(getFragmentManager(), "MarkerDetails");
+
+
+
                 }
-
-
-
                 clickCount = clickCount + 1;
                 marker.setTag(clickCount);
                 Log.d(TAG, "onMarkerClick: "+clickCount.toString() );
@@ -452,16 +482,37 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
 
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
+        EditText mkTitle = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerTitle);
+        Log.d(TAG, "onDialogPositiveClick: marker title :" + mkTitle.getText());
+        EditText mkDescription = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerDescription);
+        Log.d(TAG, "onDialogPositiveClick: marker description :" + mkTitle.getText());
+        EditText mkNodeid = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerNodeId);
+        Log.d(TAG, "onDialogPositiveClick: marker node id :" + mkNodeid.getText());
+        EditText mkNodetype = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerNodeType);
+        Log.d(TAG, "onDialogPositiveClick: marker node type :" + mkNodetype.getText());
 
-        Intent configScreen = new Intent(FarmMapsActivity.this, com.bodhileaf.buttontest.config.class);
+        // user clicked OK
+
+        Intent configScreen = new Intent(FarmMapsActivity.this, com.bodhileaf.agriMonitor.config.class);
+        configScreen.putExtra("nodeId",Integer.valueOf(mkNodeid.getText().toString()));
+        configScreen.putExtra("nodeType",Integer.valueOf(mkNodetype.getText().toString()));
+        configScreen.putExtra("dbFileName",dbFileName);
         startActivity(configScreen);
-        //setContentView(R.layout.activity_config);
+        setContentView(R.layout.activity_config);
     }
 
 
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
 
+    }
+
+
+    @Override
+    public void onBackPressed() {
+
+        // TODO Auto-generated method stub
+        getFragmentManager().popBackStack();
     }
 }
 

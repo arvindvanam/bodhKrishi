@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:tag="node_association"
+    android:background="@drawable/farm_background"
     tools:context="layout.config_node_association">
 
     <!-- TODO: Update blank fragment layout -->
@@ -13,5 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <ListView
+            android:layout_width="395dp"
+            android:layout_height="587dp"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp" />
     </android.support.constraint.ConstraintLayout>
 </FrameLayout>

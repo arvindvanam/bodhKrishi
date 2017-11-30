@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bodhileaf.buttontest.mqtt_cmd_window">
+    tools:context="com.bodhileaf.agriMonitor.mqtt_cmd_window">
 
     <EditText
         android:id="@+id/mqtt_msg"

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bodhileaf.buttontest.mqtt_command"
+    tools:context="com.bodhileaf.agriMonitor.mqtt_command"
     tools:layout_editor_absoluteY="81dp">
 
     <Button
@@ -43,7 +43,7 @@
         android:digits="0123456789."
         android:inputType="number|numberDecimal"
         app:layout_constraintBottom_toTopOf="@+id/textView"
-        app:layout_constraintEnd_toStartOf="@+id/editText2"
+        app:layout_constraintEnd_toStartOf="@+id/scheduleId"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.507" />

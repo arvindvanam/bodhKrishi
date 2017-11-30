@@ -6,7 +6,7 @@
     android:paddingLeft="2dp"
     android:paddingRight="2dp"
     android:paddingTop="2dp"
-    tools:context="com.bodhileaf.buttontest.settings$PlaceholderFragment">
+    tools:context="com.bodhileaf.agriMonitor.settings$PlaceholderFragment">
 
     <TextView
         android:id="@+id/section_label"

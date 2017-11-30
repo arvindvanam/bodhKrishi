@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
     android:backgroundTint="@android:color/transparent"
-    tools:context="com.bodhileaf.buttontest.MainActivity"
+    tools:context="com.bodhileaf.agriMonitor.OptionsActivity"
     tools:layout_editor_absoluteX="0dp"
     tools:layout_editor_absoluteY="81dp">
 

@@ -1,8 +1,5 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
-import android.app.DialogFragment;
-import android.net.Uri;
-import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -19,14 +16,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 
-import layout.config_node_association;
-import layout.config_schedule;
-import layout.config_sensor_info;
-
-public class config extends AppCompatActivity implements config_schedule.OnFragmentInteractionListener, config_sensor_info.OnFragmentInteractionListener, config_node_association.OnFragmentInteractionListener{
+public class settings extends AppCompatActivity {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -46,21 +39,35 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_config);
-
+        setContentView(R.layout.activity_settings);
+        Switch manualModeSwitch = (Switch) findViewById(R.id.manualmodeswitch);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        manualModeSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "manual mode selected", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
 
     }
 
@@ -68,7 +75,7 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_config, menu);
+        getMenuInflater().inflate(R.menu.menu_settings, menu);
         return true;
     }
 
@@ -85,11 +92,6 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
     }
 
     /**
@@ -120,26 +122,10 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-
-            if( getArguments().getInt(ARG_SECTION_NUMBER) == 1 ) {
-
-                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, false);
-                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                //textView.setText(getString(R.string.section1_format));
-                return rootView;
-            } else if( getArguments().getInt(ARG_SECTION_NUMBER) == 2 ) {
-                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, false);
-                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                //textView.setText(getString(R.string.section2_format));
-                return rootView;
-            }
-            else {
-                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, false);
-                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-                //textView.setText(getString(R.string.section3_format));
-                return rootView;
-
-            }
+            View rootView = inflater.inflate(R.layout.fragment_settings, container, false);
+            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+            textView.setText(getString(R.string.section1_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            return rootView;
         }
     }
 
@@ -147,29 +133,17 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends android.support.v13.app.FragmentPagerAdapter {
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(android.app.FragmentManager fm) {
+        public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
-        public android.app.Fragment getItem(int position) {
+        public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            android.app.Fragment tab = new android.app.Fragment();
-            switch (position) {
-                case 0: tab = layout.config_node_association.newInstance("node_association","hello");
-                    break;
-                case 1: tab = layout.config_sensor_info.newInstance("sensor_info","hello");
-                    break;
-                case 2: tab = layout.config_schedule.newInstance("schedule","hello");
-                    break;
-                default :
-                    //add traceback
-                    break;
-            }
-            return tab ;
+            return PlaceholderFragment.newInstance(position + 1);
         }
 
         @Override
@@ -182,11 +156,11 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "Node Association";
+                    return "SECTION 1";
                 case 1:
-                    return "Actuator Node Config";
+                    return "SECTION 2";
                 case 2:
-                    return "Schedule";
+                    return "SECTION 3";
             }
             return null;
         }

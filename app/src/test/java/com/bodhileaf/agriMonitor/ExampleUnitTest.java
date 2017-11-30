@@ -1,4 +1,4 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
 import org.junit.Test;
 

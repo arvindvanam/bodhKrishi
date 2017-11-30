@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bodhileaf.buttontest.TimeFragment">
+    tools:context="com.bodhileaf.agriMonitor.TimeFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <TextView

@@ -1,25 +1,26 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.net.Uri;
+import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.Switch;
-import android.widget.TextView;
+import layout.config_node_association;
+import layout.config_schedule;
+import layout.config_sensor_info;
 
-public class settings extends AppCompatActivity {
+public class config extends AppCompatActivity implements config_schedule.OnFragmentInteractionListener, config_sensor_info.OnFragmentInteractionListener, config_node_association.OnFragmentInteractionListener{
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -35,47 +36,37 @@ public class settings extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private Bundle nodeBundle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
-        Switch manualModeSwitch = (Switch) findViewById(R.id.manualmodeswitch);
+        setContentView(R.layout.activity_config);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        manualModeSwitch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "manual mode selected", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(mViewPager);
+        nodeBundle = getIntent().getExtras();
+        if (nodeBundle == null){
+            Log.d("Config activity", "onCreate: null bundle");
+        }
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_settings, menu);
+        getMenuInflater().inflate(R.menu.menu_config, menu);
         return true;
     }
 
@@ -92,6 +83,11 @@ public class settings extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 
     /**
@@ -122,10 +118,26 @@ public class settings extends AppCompatActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_settings, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section1_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
+
+            if( getArguments().getInt(ARG_SECTION_NUMBER) == 1 ) {
+
+                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, false);
+                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+                //textView.setText(getString(R.string.section1_format));
+                return rootView;
+            } else if( getArguments().getInt(ARG_SECTION_NUMBER) == 2 ) {
+                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, false);
+                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+                //textView.setText(getString(R.string.section2_format));
+                return rootView;
+            }
+            else {
+                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, false);
+                //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+                //textView.setText(getString(R.string.section3_format));
+                return rootView;
+
+            }
         }
     }
 
@@ -133,17 +145,32 @@ public class settings extends AppCompatActivity {
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public class SectionsPagerAdapter extends android.support.v13.app.FragmentPagerAdapter {
 
-        public SectionsPagerAdapter(FragmentManager fm) {
+        public SectionsPagerAdapter(android.app.FragmentManager fm) {
             super(fm);
         }
 
         @Override
-        public Fragment getItem(int position) {
+        public android.app.Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
             // Return a PlaceholderFragment (defined as a static inner class below).
-            return PlaceholderFragment.newInstance(position + 1);
+            android.app.Fragment tab = new android.app.Fragment();
+            switch (position) {
+                case 0: tab = layout.config_node_association.newInstance("node_association","hello");
+                    tab.setArguments(nodeBundle);
+                    break;
+                case 1: tab = layout.config_sensor_info.newInstance("sensor_info","hello");
+                    tab.setArguments(nodeBundle);
+                    break;
+                case 2: tab = layout.config_schedule.newInstance("schedule","hello");
+                    tab.setArguments(nodeBundle);
+                    break;
+                default :
+                    //add traceback
+                    break;
+            }
+            return tab ;
         }
 
         @Override
@@ -156,11 +183,11 @@ public class settings extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "SECTION 1";
+                    return "Node Association";
                 case 1:
-                    return "SECTION 2";
+                    return "Actuator Node Config";
                 case 2:
-                    return "SECTION 3";
+                    return "Schedule";
             }
             return null;
         }

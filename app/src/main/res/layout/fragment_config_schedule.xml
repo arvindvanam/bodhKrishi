@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:tag="config_schedule"
+    android:background="@drawable/farm_background"
     tools:context="layout.config_schedule"
     tools:layout_editor_absoluteY="81dp">
 
@@ -17,7 +18,7 @@
         android:layout_width="200dp"
         android:layout_height="50dp"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="30dp"
         android:ems="10"
         android:focusable="false"
         android:hint="01/01/2017"
@@ -25,7 +26,7 @@
         android:selectAllOnFocus="false"
         android:singleLine="false"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textView3" />
 
     <EditText
         android:id="@+id/endDatePick"
@@ -44,40 +45,42 @@
     <TextView
         android:id="@+id/startDate"
         android:layout_width="100dp"
-        android:layout_height="50dp"
+        android:layout_height="33dp"
         android:layout_marginEnd="48dp"
         android:layout_marginStart="39dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="19dp"
         android:focusable="false"
         android:text="Set start date \n dd/mm/yyyy"
         android:textAlignment="viewStart"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/startDatePick"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/scheduleId" />
 
     <TextView
         android:id="@+id/endDate"
         android:layout_width="100dp"
-        android:layout_height="50dp"
+        android:layout_height="37dp"
         android:layout_marginEnd="48dp"
         android:layout_marginStart="39dp"
-        android:layout_marginTop="23dp"
+        android:layout_marginTop="40dp"
         android:focusable="false"
         android:text="Set end date\ndd/mm/yyyy"
         android:textAlignment="viewStart"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/endDatePick"
         app:layout_constraintTop_toBottomOf="@+id/startDate" />
 
     <EditText
         android:id="@+id/timePick"
         style="@style/Widget.AppCompat.EditText"
-        android:focusable="false"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="28dp"
         android:ems="10"
+        android:focusable="false"
         android:hint="09:00"
         android:inputType="time"
         app:layout_constraintStart_toStartOf="parent"
@@ -89,10 +92,11 @@
         android:layout_height="50dp"
         android:layout_marginEnd="48dp"
         android:layout_marginStart="39dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="56dp"
         android:text="Enter start time\nhh:mm"
         android:textAlignment="viewStart"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/timePick"
         app:layout_constraintTop_toBottomOf="@+id/endDate" />
 
@@ -101,11 +105,13 @@
         style="@style/Widget.AppCompat.EditText"
         android:layout_width="200dp"
         android:layout_height="50dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="50dp"
         android:ems="10"
         android:hint="10"
         android:inputType="number"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/timePick" />
 
@@ -113,14 +119,15 @@
         android:id="@+id/textView6"
         android:layout_width="100dp"
         android:layout_height="50dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="64dp"
         android:layout_marginEnd="48dp"
         android:layout_marginStart="39dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="33dp"
         android:text="Duration min\n1-3600"
         android:textAlignment="viewStart"
         app:layout_constraintBottom_toTopOf="@+id/configSaveButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toEndOf="@+id/durationInMin"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
@@ -137,4 +144,51 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/durationInMin" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="92dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="30dp"
+        android:text="NODE ID :"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/nodeNumber"
+        style="@style/Widget.AppCompat.EditText"
+        android:layout_width="94dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="30dp"
+        android:hint="0"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="90dp"
+        android:layout_height="33dp"
+        android:layout_marginEnd="58dp"
+        android:layout_marginStart="45dp"
+        android:layout_marginTop="30dp"
+        android:text="Schedule Id"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/nodeNumber"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/scheduleId"
+        android:layout_width="92dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="56dp"
+        android:layout_marginTop="5dp"
+        android:ems="10"
+        android:hint="1"
+        android:inputType="number"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
 </android.support.constraint.ConstraintLayout>

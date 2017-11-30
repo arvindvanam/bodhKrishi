@@ -1,5 +1,5 @@
 
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -38,7 +38,7 @@ public class EndDateFragment extends DialogFragment
     public void onDateSet(DatePicker view, int year, int month, int day) {
         // Do something with the time chosen by the user
         EditText endDatePick = (EditText) getActivity().findViewById(R.id.endDatePick);
-        String dateSet = String.format("%02d", day)+"/"+String.format("%02d", month)+"/"+String.format("%02d", year);
+        String dateSet = String.format("%02d", day)+"/"+String.format("%02d", month+1)+"/"+String.format("%02d", year);
         endDatePick.setText(dateSet);
         // Do something with the date chosen by the user
     }

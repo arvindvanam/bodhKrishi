@@ -7,5 +7,5 @@
     android:clipToPadding="false"
     android:paddingBottom="@dimen/list_item_spacing_half"
     android:paddingTop="@dimen/list_item_spacing_half"
-    tools:context="com.bodhileaf.buttontest.ActuatorNodeListDialogFragment"
+    tools:context="com.bodhileaf.agriMonitor.ActuatorNodeListDialogFragment"
     tools:listitem="@layout/fragment_item_list_dialog_item" />

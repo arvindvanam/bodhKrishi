@@ -1,14 +1,10 @@
-package com.bodhileaf.buttontest;
+package com.bodhileaf.agriMonitor;
 
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v7.preference.PreferenceFragmentCompat;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
 
 
 /**

@@ -22,4 +22,22 @@
     <string name="markerTitle">Enter title for Node</string>
     <string name="saveMarker">Save</string>
     <string name="cancelMarker">Cancel</string>
+    <string name="pick_action_maps">Choose Source for Maps</string>
+    <string name="nodeNum">100</string>
+    <string name="nodeType">1</string>
+    <string name="title_activity_login">Sign in</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="server_client_id">714657023114-anvi238rbaag81v9v8qa2hm7njieq01s.apps.googleusercontent.com</string>
 </resources>

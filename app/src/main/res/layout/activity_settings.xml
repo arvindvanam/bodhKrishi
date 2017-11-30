@@ -6,8 +6,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="@drawable/farm_background"
     android:theme="@style/Theme.AppCompat"
-    tools:context="com.bodhileaf.buttontest.settings">
+    tools:context="com.bodhileaf.agriMonitor.settings">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"

@@ -8,7 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.bodhileaf.buttontest.R;
+import com.bodhileaf.agriMonitor.R;
 
 /**
  * A simple {@link Fragment} subclass.
