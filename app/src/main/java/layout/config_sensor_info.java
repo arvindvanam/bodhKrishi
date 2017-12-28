@@ -1,12 +1,16 @@
 package layout;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.bodhileaf.agriMonitor.R;
 
@@ -27,6 +31,11 @@ public class config_sensor_info extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private Integer nodeId;
+    private Integer nodeType;
+    private String dbFileName;
+    private View view;
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -55,16 +64,48 @@ public class config_sensor_info extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Bundle extras = getActivity().getIntent().getExtras();
+        if (extras == null) {
+            Log.d("schedule frag", "onCreate: null bundle ");
+            return;
+        }
+        nodeId = extras.getInt("nodeId");
+        nodeType = extras.getInt("nodeType");
+        dbFileName = extras.getString("dbFileName");
+        Log.d("schedule frag Node info", "onCreate: nodeid/nodetype "+ String.valueOf(nodeId)+"/"+String.valueOf(nodeType));
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        //view =
+
+        //Button saveButton = (Button) view.findViewById(R.id.configSaveButton);
+        //saveButton.setOnClickListener(new View.OnClickListener() {
+        //    @Override
+        //    public void onClick(View v) {
+//
+  //              SQLiteDatabase agriDb = getActivity().openOrCreateDatabase(dbFileName, android.content.Context.MODE_PRIVATE, null);
+    //            EditText soilMoistureLowThresh = (EditText) getActivity().findViewById(R.id.soilMoistureLowerThresh);
+      //          EditText soilMoistureHighThresh = (EditText) getActivity().findViewById(R.id.soilMositureUpperThresh);
+        //        EditText sampleRelWindow = (EditText) getActivity().findViewById(R.id.sampleRelWindow);
+          //      String insertRowQuery = String.format("INSERT INTO params(ActuatorNodeId,soilMoistureLowerThreshold,soilMoistureUpperThreshold,sampleRelevanceWindow) VALUES(%d,%s,'%s','%s')", nodeId, soilMoistureLowThresh.getText().toString(), soilMoistureHighThresh.getText().toString(), sampleRelWindow.getText().toString());
+            //    agriDb.execSQL(insertRowQuery);
+
+           // }
+           // });
+        //EditText nodeIdBox = (EditText) view.findViewById(R.id.actuatorNodeId);
+        //CharSequence cs = String.valueOf(nodeId);
+        //nodeIdBox.setText(cs);
         return inflater.inflate(R.layout.fragment_config_sensor_info, container, false);
     }
 
@@ -73,6 +114,8 @@ public class config_sensor_info extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+
+        //EditText
     }
 
     @Override

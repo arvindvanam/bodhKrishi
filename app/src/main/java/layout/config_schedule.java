@@ -1,5 +1,10 @@
 package layout;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.database.Cursor;
@@ -13,11 +18,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
 
 import com.bodhileaf.agriMonitor.EndDateFragment;
 import com.bodhileaf.agriMonitor.R;
 import com.bodhileaf.agriMonitor.StartDateFragment;
 import com.bodhileaf.agriMonitor.TimeFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -45,6 +55,12 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
     private Integer nodeId;
     private Integer nodeType;
     private String dbFileName;
+    private List<String> nodeList;
+    private SQLiteDatabase agriDb;
+    private ArrayAdapter<String> nodeAdapter;
+    private Spinner nodeSpinner;
+    private Integer listCurPos;
+    private boolean match = false;
 
     private OnFragmentInteractionListener mListener;
 
@@ -101,8 +117,12 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_config_schedule, container, false);
-        EditText timePick = (EditText) view.findViewById(R.id.timePick);
-        timePick.setOnClickListener(new View.OnClickListener() {
+        final EditText startDatePicker = (EditText) view.findViewById(R.id.startDatePick);
+        final EditText endDatePicker = (EditText) view.findViewById(R.id.endDatePick);
+        final EditText startTime = (EditText) view.findViewById(R.id.timePick);
+        final EditText scheduleId = (EditText) view.findViewById(R.id.scheduleId);
+        final EditText scheduleDuration = (EditText) view.findViewById(R.id.durationInMin);
+        startTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("schedule frag", "onClick: open time picker ");
@@ -112,8 +132,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
             }
         });
 
-        EditText startDatePick = (EditText) view.findViewById(R.id.startDatePick);
-        startDatePick.setOnClickListener(new View.OnClickListener() {
+        startDatePicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("schedule frag", "onClick: open start Date picker ");
@@ -123,8 +142,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
             }
         });
 
-        EditText endDatePick = (EditText) view.findViewById(R.id.endDatePick);
-        endDatePick.setOnClickListener(new View.OnClickListener() {
+        endDatePicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.d("schedule frag", "onClick: open end date picker ");
@@ -134,18 +152,57 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
             }
         });
 
+        agriDb = getActivity().openOrCreateDatabase(dbFileName,android.content.Context.MODE_PRIVATE ,null);
+        initNodeList(agriDb);
+        nodeSpinner =  view.findViewById(R.id.nodeSpinner);
+        nodeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_item, nodeList);
+        nodeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        nodeSpinner.setAdapter(nodeAdapter);
+        nodeSpinner.setSelection(listCurPos);
+        nodeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String listEntry = nodeList.get(position);
+                // case where the selected node is newly added
+                if (match) {
+                    //show all default values in the UI
+                } else {
+                    //case where the selected node already existed
+                    String query = String.format("SELECT scheduleId FROM scheduleList where nodeId=%d" ,nodeId);
+                    //check if the schedule id exists for the node id
+                    Cursor nodeListResults = agriDb.rawQuery(query,null);
+                    nodeListResults.moveToFirst();
+                    if (nodeListResults.getCount() == 0) {
+                        //load default values in the UI
+                    } else {
+                        Integer schedule_id_value = nodeListResults.getInt(1);
+                        String startDate_value = nodeListResults.getString(2);
+                        String endDate_value = nodeListResults.getString(3);
+                        String startTime_value = nodeListResults.getString(4);
+                        Integer duration_value = nodeListResults.getInt(5);
+                        scheduleId.setText(schedule_id_value.toString());
+                        startDatePicker.setText(startDate_value);
+                        endDatePicker.setText(endDate_value);
+                        startTime.setText(startTime_value);
+                        scheduleDuration.setText(duration_value.toString());
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+                // sometimes you need nothing here
+            }
+        });
         Button saveButton = (Button) view.findViewById(R.id.configSaveButton);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                SQLiteDatabase agriDb = getActivity().openOrCreateDatabase(dbFileName,android.content.Context.MODE_PRIVATE ,null);
-                EditText startDatePicker = (EditText) getActivity().findViewById(R.id.startDatePick);
-                EditText endDatePicker = (EditText) getActivity().findViewById(R.id.endDatePick);
 
-                EditText startTime = (EditText) getActivity().findViewById(R.id.timePick);
-                EditText scheduleId = (EditText) getActivity().findViewById(R.id.scheduleId);
-                EditText scheduleDuration = (EditText) getActivity().findViewById(R.id.durationInMin);
     //            int start_hour;
       //          int start_min;
         //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -160,6 +217,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
                 DateFormat df = new SimpleDateFormat("dd/mm/yyyy HH:mm:ss");
                 String startDateString = startDatePicker.getText().toString()+" "+startTime.getText().toString()+":00";
                 String endDateString = endDatePicker.getText().toString()+" "+startTime.getText().toString()+":00";
+
 
 
                 try {
@@ -207,10 +265,32 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
 
             }
         });
-        EditText nodeIdBox = (EditText) view.findViewById(R.id.nodeNumber);
-        CharSequence cs = String.valueOf(nodeId);
-        nodeIdBox.setText(cs);
         return view;
+    }
+
+    private void initNodeList(SQLiteDatabase agriDb) {
+
+        Integer curPos = 0;
+        nodeList = new ArrayList<String>();
+        String query = "SELECT nodeID FROM nodesInfo";
+        //check if the schedule id exists for the node id
+        Cursor nodeListResults = agriDb.rawQuery(query,null);
+        nodeListResults.moveToFirst();
+        do {
+
+            Integer nodeID_from_list = nodeListResults.getInt(0);
+            if (nodeId == nodeID_from_list) {
+                match = true;
+                listCurPos = curPos;
+            }
+            nodeList.add(nodeID_from_list.toString());
+            Log.d("Config_schedule", "NodeList: "+nodeID_from_list.toString());
+            curPos++;
+        } while(nodeListResults.moveToNext());
+        if(match == false) {
+            listCurPos = curPos;
+            nodeList.add(nodeId.toString());
+        }
     }
 
     // TODO: Rename method, update argument and hook method into UI event

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,8 +28,11 @@ public class config_node_association extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    private Integer nodeId;
+    private Integer nodeType;
+    private String dbFileName;
     private OnFragmentInteractionListener mListener;
+
 
     public config_node_association() {
         // Required empty public constructor
@@ -55,6 +59,15 @@ public class config_node_association extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle extras = getActivity().getIntent().getExtras();
+        if (extras == null) {
+            Log.d("schedule frag", "onCreate: null bundle ");
+            return;
+        }
+        nodeId = extras.getInt("nodeId");
+        nodeType = extras.getInt("nodeType");
+        dbFileName = extras.getString("dbFileName");
+        Log.d("schedule frag Node info", "onCreate: nodeid/nodetype "+ String.valueOf(nodeId)+"/"+String.valueOf(nodeType));
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);

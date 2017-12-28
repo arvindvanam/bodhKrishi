@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient"
     tools:context="com.bodhileaf.agriMonitor.mqtt_cmd_window">
 
     <EditText
@@ -24,6 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="100dp"
         android:text="SEND QUERY"
+        android:background="@drawable/buttonshape"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
@@ -39,7 +41,7 @@
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Subscribed Topic Name"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/actuatorNodeId"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

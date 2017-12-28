@@ -14,7 +14,7 @@
 
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/openFarmInText"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="35dp"
@@ -23,7 +23,7 @@
         android:backgroundTint="@color/colorPrimaryDark"
         android:text="@string/welcome"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/openMaps"
+        app:layout_constraintBottom_toTopOf="@+id/openFarmInMaps"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -33,7 +33,7 @@
         tools:layout_constraintTop_creator="1" />
 
     <Button
-        android:id="@+id/openMaps"
+        android:id="@+id/openFarmInMaps"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="35dp"
@@ -46,7 +46,7 @@
         app:layout_constraintBottom_toTopOf="@+id/button3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button1"
+        app:layout_constraintTop_toBottomOf="@+id/openFarmInText"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
         tools:layout_constraintTop_creator="1" />
@@ -63,10 +63,10 @@
         android:backgroundTint="@color/colorPrimaryDark"
         android:text="@string/opendb"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/button5"
+        app:layout_constraintBottom_toTopOf="@+id/manualMode"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/openMaps"
+        app:layout_constraintTop_toBottomOf="@+id/openFarmInMaps"
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintTop_creator="1" />
 
@@ -81,13 +81,13 @@
         android:text="@string/Language"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/button6"
-        app:layout_constraintTop_toBottomOf="@+id/button5"
+        app:layout_constraintTop_toBottomOf="@+id/manualMode"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
         tools:layout_editor_absoluteX="38dp" />
 
     <Button
-        android:id="@+id/button5"
+        android:id="@+id/manualMode"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="40dp"

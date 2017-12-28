@@ -3,8 +3,12 @@ package com.bodhileaf.agriMonitor;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.DialogFragment;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -32,6 +36,7 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 //import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -42,9 +47,16 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveClient;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.OpenFileActivityOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -52,16 +64,22 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
+public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> , FarmListFragment.FarmSourceListener{
 
     /**
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
     private static final String TAG = "LoginActivity";
-    private static int RC_SIGN_IN = 100;
+    private static final int RC_SIGN_IN = 100;
 
+    private static final int FILE_SELECT_CODE = 99;
+    private String dbfilename;
 
+    /**
+     * Request code for the file opener activity.
+     */
+    private static final int REQUEST_CODE_OPENER = 1;
     /**
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
@@ -80,6 +98,149 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
     private GoogleSignInClient mGoogleSignInClient;
+
+
+    private void showFileChooser() {
+        Intent  intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        try {
+            startActivityForResult(
+                    Intent.createChooser(intent, "Select a File to Upload"),
+                    FILE_SELECT_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Please install a File Manager.",
+                    Toast.LENGTH_SHORT).show();
+        }
+        Log.d("main activity", "showFileChooser: exit ");
+
+    }
+
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case RC_SIGN_IN:
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                handleSignInResult(task);
+                break;
+
+            case FILE_SELECT_CODE:
+                if (resultCode == RESULT_OK) {
+                    // Get the Uri of the selected file
+                    Uri  uri = data.getData();
+                    Log.d("onActivity", "File Uri: " + uri.toString());
+                    // Get the path
+                    String path = null;
+                    String filename = null;
+
+                    path = FileUtils.getPath(LoginActivity.this, uri);
+                    Log.d(TAG, "Actual File Path: " + path);
+                    // Get the file instance
+
+                    Cursor  cursor = null;
+
+                    try {
+                        cursor = getContentResolver().query(uri, null, null, null, null);
+                        int column_index = cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME);
+                        if (cursor.moveToFirst()) {
+                            filename = cursor.getString(column_index);
+                        }
+                        dbfilename = path;
+                        Log.d("onActivity", "File path: " + path+ "Name:" + filename);
+                        SQLiteDatabase agridb = openOrCreateDatabase(path,MODE_PRIVATE ,null ) ;
+                        if (!qualifyDB(agridb)) {
+                            Toast.makeText(getApplicationContext(), "INCORRECT TYPE OF DATABASE. OPEN ANOTHER" , Toast.LENGTH_LONG).show();
+                            // TODO: return to open db activity;
+                            Log.d("database tables", "qualifyDB: FAILED");
+                            return;
+                        }
+                        agridb.close();
+                        //agridb.execSQL("insert into nodesInfo(nodeID,nodeType) values(\"104\",\"122\") ");
+                        //Cursor  resultSet = agridb.rawQuery("Select nodeID from nodesInfo",null);
+                        //resultSet.moveToFirst();
+                        //String username = resultSet.getString(0);
+                        //String password = resultSet.getString(1);
+                        //Toast.makeText(getApplicationContext(), username , Toast.LENGTH_LONG).show();
+
+
+
+                    } catch (Exception e) {
+                        // Eat it
+                    }
+                }
+
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG , "on activityresult: exit ");
+        if (dbfilename != null) {
+            Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
+            optionsScreen.putExtra("filename",dbfilename );
+            startActivity(optionsScreen);
+            //Intent mapsScreen  = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.FarmMapsActivity.class);
+            //mapsScreen.putExtra("filename",dbfilename );
+            //startActivity(mapsScreen);
+        }
+    }
+    // Sanity check if the opened db is not corrupted and matches the required table schemas
+    private boolean qualifyDB(SQLiteDatabase selectDB) {
+
+        MyDatabase myDB = new MyDatabase(getApplicationContext());
+        SQLiteDatabase compareDB = myDB.getDatabase();
+        boolean result = true;
+
+
+        //SQLiteDatabase compareDB = openOrCreateDatabase("golden_new.db",MODE_PRIVATE,null);
+        Cursor results = compareDB.rawQuery("SELECT name FROM sqlite_master WHERE type='table'",null);
+        Cursor resultsSelect = selectDB.rawQuery("SELECT name FROM sqlite_master WHERE type='table'",null);
+        results.moveToFirst();
+        resultsSelect.moveToFirst();
+        do {
+            Log.d("database tables", "qualifyDB: "+results.getString(0));
+            if (results.getString(0) != "android_metadata") {
+                if (results.getString(0) == resultsSelect.getString(0)) {
+                    String query = "SELECT sql FROM sqlite_master WHERE name ='" + results.getString(0) + "'";
+                    Cursor schemaResults = compareDB.rawQuery(query, null);
+                    Cursor schemaSelectResults = selectDB.rawQuery(query, null);
+                    schemaResults.moveToFirst();
+                    schemaSelectResults.moveToFirst();
+                    if (schemaResults.getString(0) != schemaSelectResults.getString(0)) {
+                        compareDB.close();
+                        return false;
+                    }
+                }
+            } else {
+                compareDB.close();
+                return false;
+            }
+            //Log.d("database tables", "schema query result: " + schemaResults.getString(0));
+
+        }while (results.moveToNext());
+        compareDB.close();
+        return result;
+    }
+
+    // Create new DB which copies table schemas from golden db
+    private void createNewDB(String path) {
+        SQLiteDatabase baseDB = openOrCreateDatabase("databases/golden.db",MODE_PRIVATE,null);
+        //File fileMetadata = new File();
+        //fileMetadata.setName("Project plan");
+        //fileMetadata.setMimeType("application/vnd.google-apps.drive-sdk");
+
+        //File file = driveService.files().create(fileMetadata)
+        //       .setFields("id")
+        //      .execute();
+        //System.out.println("File ID: " + file.getId());
+
+
+
+
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -154,8 +315,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private void updateUI(@Nullable GoogleSignInAccount account) {
         if(account != null) {
-            Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
-            startActivity(optionsScreen);
+            //Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
+            //startActivity(optionsScreen);
+            DialogFragment newFarmListFragment = new FarmListFragment();
+            newFarmListFragment.show(getFragmentManager(), "FarmSelect");
 
         } else {
 
@@ -166,18 +329,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        // Result returned from launching the Intent from GoogleSignInClient.getSignInIntent(...);
-        if (requestCode == RC_SIGN_IN) {
-            // The Task returned from this call is always completed, no need to attach
-            // a listener.
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            handleSignInResult(task);
-        }
-    }
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -430,5 +582,80 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             showProgress(false);
         }
     }
+
+    @Override
+    public void onFarmSourceSelect(int result) {
+        Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
+        Log.d("Main Activity", "onFarmSourceSelect: result: "+Integer.toString(result));
+        switch (result) {
+            case 0:
+
+
+
+                //TODO: Open create new file dialog box
+                DriveClient mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
+                // Create the initial metadata - MIME type and title.
+                // Note that the user will be able to change the title later.
+                MetadataChangeSet metadataChangeSet =
+                        new MetadataChangeSet.Builder()
+                                .setMimeType("*/*")
+                                .setTitle("Android .db")
+                                .build();
+                // Set up options to configure and display the create file activity.
+                OpenFileActivityOptions openFileActivityOptions =
+                        new OpenFileActivityOptions.Builder()
+                                .setMimeType(Collections.singletonList("*/*"))
+                                .build();
+
+                mDriveClient.newOpenFileActivityIntentSender(openFileActivityOptions)
+                        .addOnSuccessListener(new OnSuccessListener<IntentSender>() {
+                            @Override
+                            public void onSuccess(IntentSender intentSender) {
+                                try {
+                                    startIntentSenderForResult(
+                                            intentSender,
+                                            REQUEST_CODE_OPENER,
+                            /* fillInIntent= */ null,
+                            /* flagsMask= */ 0,
+                            /* flagsValues= */ 0,
+                            /* extraFlags= */ 0);
+                                } catch (IntentSender.SendIntentException e) {
+                                    Log.w(TAG, "Unable to send intent.", e);
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create OpenFileActivityIntent.", e);
+                    }
+                });
+
+
+                //startActivity(optionsScreen);
+
+                break;
+
+
+            case 1:
+                if(dbfilename == null) {
+                    showFileChooser();
+                }
+                //startActivity(optionsScreen);
+
+                Log.d("main Activity", "onFarmSourceSelect: file chooser done");
+
+
+                break;
+
+            case 2:
+                //startActivity(optionsScreen);
+                break;
+            default:
+                break;
+
+        }
+    }
 }
+
+
 

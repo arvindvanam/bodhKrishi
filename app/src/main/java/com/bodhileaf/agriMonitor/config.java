@@ -121,18 +121,18 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
 
             if( getArguments().getInt(ARG_SECTION_NUMBER) == 1 ) {
 
-                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, false);
+                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, true);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section1_format));
                 return rootView;
             } else if( getArguments().getInt(ARG_SECTION_NUMBER) == 2 ) {
-                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, false);
+                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, true);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section2_format));
                 return rootView;
             }
             else {
-                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, false);
+                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, true);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section3_format));
                 return rootView;

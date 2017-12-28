@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.location.places.GeoDataClient;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -37,7 +39,34 @@ import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
+
 public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCallback,MarkerDialogFragment.MarkerDialogListener  {
+    private class marker_data {
+        private Integer node_id;
+        private Integer node_type;
+        private Integer click_count;
+
+        marker_data(Integer nodeid, Integer nodetype){
+            node_id=nodeid;
+            node_type=nodetype;
+            click_count = 0;
+        }
+
+        public Integer getNode_id() {
+            return node_id;
+        }
+        public Integer getNode_type() {
+            return node_type;
+        }
+        public Integer getClick_count() {
+            return click_count;
+        }
+        public void incrClick_count() {
+            click_count++;
+        }
+
+    }
+
     private static final String TAG = FarmMapsActivity.class.getSimpleName();
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
@@ -72,6 +101,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
     private String dbFileName;
+    private LatLng last_position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,37 +212,48 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             Integer nodeID = nodeListResults.getInt(0);
             Integer nodeType = nodeListResults.getInt(1);
             String sensorType = null;
+            Log.d(TAG, "onMapReady: node: lat: "+Double.toString(latLocation)+" long :"+Double.toString(lonLocation) );
+            LatLng addLoc = new LatLng(latLocation,lonLocation);
+            marker_data marker_obj = new marker_data(nodeID,nodeType);
             switch (nodeType) {
-                case 0: sensorType = "Air Soil Sensor Node"; break;
-                case 1: sensorType = "Water level Sensor Node"; break;
-                case 2: sensorType = "water flow & Actuator Node"; break;
+                case 0: sensorType = "Air Soil Sensor Node";
+                    Marker new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.sensor)));
+                    new_marker.setTag(marker_obj);
+                    break;
+                case 1: sensorType = "Water level Sensor Node";
+                    new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_level)));
+                    new_marker.setTag(marker_obj);
+                    break;
+                case 2: sensorType = "water flow & Actuator Node";
+                    new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_tap)));
+                    new_marker.setTag(marker_obj);
+                    break;
                 default:
                     break;
             }
-            Log.d(TAG, "onMapReady: node: lat: "+Double.toString(latLocation)+" long :"+Double.toString(lonLocation) );
-            LatLng addLoc = new LatLng(latLocation,lonLocation);
-            mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)));
         } while(nodeListResults.moveToNext());
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             /** Called when the user clicks a marker. */
             @Override
             public boolean onMarkerClick(final Marker marker) {
-                Integer clickCount = (Integer) marker.getTag();
+                last_position = marker.getPosition();
+                marker_data marker_info = (marker_data) marker.getTag();
                 Log.d(TAG, "onMarkerClick: " );
+                Integer clickCount = (Integer) marker_info.getClick_count();
+
+                Bundle bundle = new Bundle();
+                bundle.putInt("node_id", marker_info.getNode_id());
+                bundle.putInt("node_type",marker_info.getNode_type());
                 // Check if a click count was set, then display the click count.
-                if (clickCount == null) {
-                    clickCount = 0;
 
+                DialogFragment newMarkerFragment = new MarkerDialogFragment();
+                newMarkerFragment.setArguments(bundle);
+                newMarkerFragment.show(getFragmentManager(), "MarkerDetails");
 
-                    DialogFragment newMarkerFragment = new MarkerDialogFragment();
-                    newMarkerFragment.show(getFragmentManager(), "MarkerDetails");
-
-
-
-                }
                 clickCount = clickCount + 1;
-                marker.setTag(clickCount);
+                marker_info.incrClick_count();
+                marker.setTag(marker_info);
                 Log.d(TAG, "onMarkerClick: "+clickCount.toString() );
                     // Toast.makeText(marker.getTitle() + " has been clicked " + clickCount + " times.",
                     //        Toast.LENGTH_SHORT).show();
@@ -257,6 +298,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             @Override
             public void onMapLongClick(LatLng latLng) {
+                last_position = latLng;
                 mMap.addMarker(new MarkerOptions()
                         .position(latLng)
                         .title("Your marker title")
@@ -488,15 +530,20 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
         Log.d(TAG, "onDialogPositiveClick: marker description :" + mkTitle.getText());
         EditText mkNodeid = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerNodeId);
         Log.d(TAG, "onDialogPositiveClick: marker node id :" + mkNodeid.getText());
-        EditText mkNodetype = (EditText) dialog.getDialog().getWindow().findViewById(R.id.markerNodeType);
-        Log.d(TAG, "onDialogPositiveClick: marker node type :" + mkNodetype.getText());
+        Spinner mkNodetype = (Spinner) dialog.getDialog().getWindow().findViewById(R.id.spinner_node_type);
+
+        //Log.d(TAG, "onDialogPositiveClick: marker node type :" + mkNodetype.getText());
 
         // user clicked OK
 
         Intent configScreen = new Intent(FarmMapsActivity.this, com.bodhileaf.agriMonitor.config.class);
         configScreen.putExtra("nodeId",Integer.valueOf(mkNodeid.getText().toString()));
-        configScreen.putExtra("nodeType",Integer.valueOf(mkNodetype.getText().toString()));
+        configScreen.putExtra("nodeType",mkNodetype.getSelectedItemPosition());
         configScreen.putExtra("dbFileName",dbFileName);
+        SQLiteDatabase farmDb = openOrCreateDatabase(dbFileName, MODE_PRIVATE ,null) ;
+        String insertRowQuery = String.format("INSERT INTO nodesInfo(nodeID,nodeType,latitude,longitude) VALUES(%s,%d,'%f','%f')", mkNodeid.getText().toString(), mkNodetype.getSelectedItemPosition(), last_position.latitude, last_position.longitude);
+        farmDb.execSQL(insertRowQuery);
+        farmDb.close();
         startActivity(configScreen);
         setContentView(R.layout.activity_config);
     }

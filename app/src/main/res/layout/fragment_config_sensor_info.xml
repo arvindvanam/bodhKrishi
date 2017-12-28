@@ -3,57 +3,127 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/farm_background"
-    tools:context="layout.config_sensor_info">
+    android:background="@drawable/gradient"
+    tools:context="layout.config_sensor_info"
+    tools:layout_editor_absoluteY="81dp">
 
     <!-- TODO: Update blank fragment layout -->
 
     <EditText
-        android:id="@+id/editText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/actuatorNodeId"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="96dp"
+        android:background="@drawable/edittextstyle"
         android:ems="10"
+        android:gravity="center"
+        android:hint="1"
         android:inputType="number"
-        android:text="actuatorNodeId"
-        tools:layout_editor_absoluteX="7dp"
-        tools:layout_editor_absoluteY="32dp" />
+        android:singleLine="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/editText2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/soilMositureUpperThresh"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="31dp"
+        android:background="@drawable/edittextstyle"
         android:ems="10"
+        android:gravity="center"
+        android:hint="20"
         android:inputType="number"
-        android:text="Name"
-        tools:layout_editor_absoluteX="7dp"
-        tools:layout_editor_absoluteY="126dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/actuatorNodeId" />
 
     <EditText
-        android:id="@+id/editText3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/soilMoistureLowerThresh"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/edittextstyle"
         android:ems="10"
+        android:gravity="center"
+        android:hint="0"
         android:inputType="number"
-        android:text="Name"
-        tools:layout_editor_absoluteX="7dp"
-        tools:layout_editor_absoluteY="233dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/soilMositureUpperThresh" />
 
     <EditText
-        android:id="@+id/editText4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/sampleRelWindow"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="29dp"
+        android:background="@drawable/edittextstyle"
         android:ems="10"
+        android:gravity="center"
+        android:hint="0"
         android:inputType="number"
-        android:text="Name"
-        tools:layout_editor_absoluteX="7dp"
-        tools:layout_editor_absoluteY="344dp" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/soilMoistureLowerThresh" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/sensorInfoSaveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="152dp"
-        android:text="save"
+        android:layout_marginBottom="69dp"
+        android:layout_marginTop="82dp"
+        android:background="@drawable/buttonshape"
+        android:text="save sensor info"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        tools:layout_editor_absoluteY="484dp" />
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/sampleRelWindow" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="79dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="96dp"
+        android:text="Actuator \n Node Id"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/actuatorNodeId"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="33dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="46dp"
+        android:text="Soil Moisture \n upper threshold "
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/soilMositureUpperThresh"
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+    <TextView
+        android:id="@+id/textView9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="33dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="58dp"
+        android:text="Soil Moisture \n Lower threshold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/soilMoistureLowerThresh"
+        app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+    <TextView
+        android:id="@+id/textView10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="28dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="37dp"
+        android:text="sample relevance\n window"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/sampleRelWindow"
+        app:layout_constraintTop_toBottomOf="@+id/textView9" />
 </android.support.constraint.ConstraintLayout>

@@ -55,7 +55,8 @@ public class FarmListFragment extends DialogFragment{
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(),R.style.CustomDialog);
+
         builder.setTitle(R.string.pick_action_maps)
                 .setItems(R.array.map_source_array, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -66,6 +67,7 @@ public class FarmListFragment extends DialogFragment{
                         // of the selected item
                     }
                 });
+
         return builder.create();
     }
 

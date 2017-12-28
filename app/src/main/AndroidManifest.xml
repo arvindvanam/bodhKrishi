@@ -32,6 +32,8 @@
         <service android:name="org.eclipse.paho.android.service.MqttService" />
         <activity
             android:name=".LoginActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,7 +42,8 @@
         </activity>
         <activity
             android:name=".OptionsActivity"
-            android:configChanges="locale">
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|locale">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -49,6 +52,8 @@
         <activity
             android:name=".settings"
             android:label="@string/title_activity_settings"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
             android:parentActivityName=".OptionsActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -63,14 +68,22 @@
         <activity
             android:name=".config"
             android:label="@string/title_activity_config"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
             android:parentActivityName=".OptionsActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
         </activity>
-        <activity android:name=".mqtt_command" />
-        <activity android:name=".mqtt_cmd_window" />
+        <activity android:name=".mqtt_command"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
+            />
+        <activity android:name=".mqtt_cmd_window"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
+            />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -85,6 +98,8 @@
 
         <activity
             android:name=".FarmMapsActivity"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_farm_maps">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
