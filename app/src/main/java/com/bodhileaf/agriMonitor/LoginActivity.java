@@ -250,9 +250,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         //getActionBar().hide();
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+
         populateAutoComplete();
+        //TODO: remove the below 2 lines once email based authentication via firebase is enabled
+        mEmailView.setVisibility(View.INVISIBLE);
+        mEmailView.setHint("");
 
         mPasswordView = (EditText) findViewById(R.id.password);
+
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
@@ -263,7 +268,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 return false;
             }
         });
-
+        //TODO: remove the below 2 lines once email based authentication via firebase is enabled
+        mPasswordView.setVisibility(View.INVISIBLE);
+        mPasswordView.setHint("");
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -302,6 +309,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+            mEmailSignInButton.setBackgroundResource(R.drawable.quick_signinicon);
 
             // Signed in successfully, show authenticated UI.
             updateUI(account);

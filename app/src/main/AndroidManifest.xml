@@ -10,7 +10,7 @@
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the 'MyLocation' functionality. 
+         location permissions for the 'MyLocation' functionality.
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -30,31 +30,33 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service android:name="org.eclipse.paho.android.service.MqttService" />
+
         <activity
             android:name=".LoginActivity"
-            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_login">
+            android:windowSoftInputMode="stateHidden"
+            android:label="@string/title_activity_login"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".OptionsActivity"
-            android:screenOrientation="portrait"
-            android:configChanges="orientation|keyboardHidden|locale">
-
+            android:configChanges="orientation|keyboardHidden|locale"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.LoginActivity" />
         </activity>
         <activity
             android:name=".settings"
-            android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
+            android:label="@string/title_activity_settings"
             android:parentActivityName=".OptionsActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -62,35 +64,36 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".config"
-            android:label="@string/title_activity_config"
-            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
+            android:label="@string/title_activity_config"
             android:parentActivityName=".OptionsActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
         </activity>
-        <activity android:name=".mqtt_command"
-            android:screenOrientation="portrait"
+        <activity
+            android:name=".mqtt_command"
             android:configChanges="orientation|keyboardHidden"
-            />
-        <activity android:name=".mqtt_cmd_window"
-            android:screenOrientation="portrait"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".mqtt_cmd_window"
             android:configChanges="orientation|keyboardHidden"
-            />
+            android:screenOrientation="portrait" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
              Note that the API key is linked to the encryption key used to sign the APK.
              You need a different API key for each encryption key, including the release key that is used to
              sign the APK for publishing.
-             You can define the keys for the debug and release targets in src/debug/ and src/release/. 
+             You can define the keys for the debug and release targets in src/debug/ and src/release/.
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -98,14 +101,17 @@
 
         <activity
             android:name=".FarmMapsActivity"
-            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
-            android:label="@string/title_activity_farm_maps">
+            android:label="@string/title_activity_farm_maps"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
         </activity>
-
+        <activity android:name=".StatisticsActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".MqttGuiActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

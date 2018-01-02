@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -17,20 +18,32 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.io.UnsupportedEncodingException;
 
 public class mqtt_cmd_window extends AppCompatActivity {
+    private static final String TAG = "mqtt_cmd_window";
+    private String dbFilename;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+// get data via the key
+
         setContentView(R.layout.activity_mqtt_cmd_window);
 
-        String clientId = MqttClient.generateClientId();
-
-        final String mqtt_link ;
-        Bundle extras = getIntent().getExtras();
-        if(extras !=null) {
+        //String clientId = MqttClient.generateClientId();
+        String clientId;
+            final String mqtt_link ;
+            Bundle extras = getIntent().getExtras();
+            if(extras !=null) {
             mqtt_link = extras.getString("link");
+            clientId=extras.getString("clientid");
+            dbFilename = extras.getString("filename");
+            if (dbFilename == null) {
+                Log.d(TAG, "onCreate: db filename missing" );
+                // do something with the data
+            }
         } else {
             mqtt_link = "tcp://192.168.0.3:1883";
+            clientId = MqttClient.generateClientId();
         }
 
         final MqttAndroidClient client =
@@ -73,6 +86,9 @@ public class mqtt_cmd_window extends AppCompatActivity {
                 } catch (UnsupportedEncodingException | MqttException e) {
                     e.printStackTrace();
                 }
+                Toast.makeText(mqtt_cmd_window.this,"MQTT message sent",Toast.LENGTH_LONG).show();
+                mqtt_topic.setText("");
+                mqtt_msg.setText("");
             }
         });
     }

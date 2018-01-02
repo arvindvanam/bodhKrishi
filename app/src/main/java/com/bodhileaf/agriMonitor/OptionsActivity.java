@@ -51,11 +51,11 @@ static int a=0;
 // get data via the key
         dbfilename  = extras.getString("filename");
         if (dbfilename == null) {
-            Log.d(TAG, "onreate: db filename missing" );
+            Log.d(TAG, "onCreate: db filename missing" );
             return;
             // do something with the data
         }
-        Log.d(TAG, "onreate: db filename "+dbfilename );
+        Log.d(TAG, "onCreate: db filename "+dbfilename );
 
         final com.bodhileaf.agriMonitor.config config_page = new config();
         //PreferenceManager.setDefaultValues(this, R.xml.preferences , false);
@@ -127,6 +127,7 @@ static int a=0;
             @Override
             public void onClick(View v) {
                 Intent mqttScreen = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.mqtt_command.class);
+                mqttScreen.putExtra("filename",dbfilename);
                 startActivity(mqttScreen);
 
             }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient"
+    tools:context="com.bodhileaf.agriMonitor.MqttGuiActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="302dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView2"
+        app:srcCompat="@drawable/alarm" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="51dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/tap" />
+
+    <Spinner
+        android:id="@+id/alarm_node_id_spinner"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="338dp"
+        android:layout_marginStart="39dp"
+        android:layout_marginTop="103dp"
+        android:gravity="center"
+        android:textAlignment="gravity"
+        android:background="@drawable/edittextstyle_square"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toBottomOf="@+id/valve_nodeid_spinner" />
+
+    <Spinner
+        android:id="@+id/valve_nodeid_spinner"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="39dp"
+        android:layout_marginTop="82dp"
+        android:gravity="center"
+        android:textAlignment="gravity"
+        android:background="@drawable/edittextstyle_square"
+        app:layout_constraintStart_toEndOf="@+id/imageView2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/tap_switch"
+        android:layout_width="96dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginStart="23dp"
+        android:layout_marginTop="82dp"
+        android:text="Off/On"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/valve_nodeid_spinner"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Switch
+        android:id="@+id/alarm_switch"
+        android:layout_width="96dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="338dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginStart="23dp"
+        android:layout_marginTop="103dp"
+        android:text="Off/On"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/alarm_node_id_spinner"
+        app:layout_constraintTop_toBottomOf="@+id/tap_switch" />
+</android.support.constraint.ConstraintLayout>

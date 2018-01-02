@@ -3,8 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:tag="node_association"
     android:background="@drawable/gradient"
+    android:tag="node_association"
     tools:context="layout.config_node_association">
 
     <!-- TODO: Update blank fragment layout -->
@@ -14,20 +14,56 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ListView
-            android:layout_width="395dp"
-            android:layout_height="wrap_content"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="8dp" />
-
         <Button
             android:id="@+id/button2"
+            android:layout_width="201dp"
+            android:layout_height="49dp"
             android:background="@drawable/buttonshape"
+            android:text="Add Node"
+            tools:layout_editor_absoluteX="105dp"
+            tools:layout_editor_absoluteY="148dp" />
+
+        <ListView
+            android:id="@+id/nodeListView"
+            android:layout_width="150dp"
+            android:layout_height="561dp"
+            tools:layout_editor_absoluteX="0dp"
+            tools:layout_editor_absoluteY="227dp" />
+
+        <Spinner
+            android:id="@+id/nodeid_spinner_node_asc"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:background="@drawable/edittextstyle"
+            android:gravity="center"
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="78dp" />
+
+        <Spinner
+            android:id="@+id/sensor_nodeid_spinner_node_asc"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:background="@drawable/edittextstyle"
+            android:gravity="center"
+            android:textAlignment="center"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="16dp" />
+
+        <TextView
+            android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add Node"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            tools:layout_editor_absoluteY="74dp" />
+            android:text="actuator node id"
+            tools:layout_editor_absoluteX="220dp"
+            tools:layout_editor_absoluteY="26dp" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="select sensor node id"
+            tools:layout_editor_absoluteX="220dp"
+            tools:layout_editor_absoluteY="92dp" />
     </android.support.constraint.ConstraintLayout>
 </FrameLayout>

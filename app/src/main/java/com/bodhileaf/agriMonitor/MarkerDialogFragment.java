@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -38,6 +39,8 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
     MarkerDialogListener mListener;
     private Integer node_type_selection;
     private Integer n_id,n_type;
+    private String dbFileName;
+    private Activity mActivity;
 
 
 
@@ -48,18 +51,18 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
             // Get the layout inflater
              LayoutInflater inflater = getActivity().getLayoutInflater();
         Log.d("Marker Dialog Fragment", "onCreateView: spinner creator");
-        View v = inflater.inflate(R.layout.add_marker, null);
+        View view = inflater.inflate(R.layout.add_marker, null);
         List<String>  node_type_list;
         ArrayAdapter<String> nodeAdapter;
-        final EditText nodeid = (EditText) v.findViewById(R.id.markerNodeId);
+        final EditText nodeid = (EditText) view.findViewById(R.id.markerNodeId);
         node_type_list = new ArrayList<String>();
         node_type_list.add("Soil/Air sensor");
         node_type_list.add("Water Level sensor");
         node_type_list.add("Water valve");
 
         //Spinner
-        Spinner nodeTypeSpinner =  v.findViewById(R.id.spinner_node_type);
-        nodeAdapter = new ArrayAdapter<>(v.getContext(), android.R.layout.simple_spinner_item, node_type_list);
+        final Spinner nodeTypeSpinner =  view.findViewById(R.id.spinner_node_type);
+        nodeAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_spinner_item, node_type_list);
         nodeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         nodeTypeSpinner.setAdapter(nodeAdapter);
         nodeid.setText(n_id.toString());
@@ -78,7 +81,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
 
             }
         });
-        Button nodeid_incr = (Button) v.findViewById(R.id.increment_node_button);
+        Button nodeid_incr = (Button) view.findViewById(R.id.increment_node_button);
         nodeid_incr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -88,7 +91,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
                 nodeid.setText(cur_value.toString());
             }
         });
-        Button nodeid_decr = (Button) v.findViewById(R.id.decrement_node_button);
+        Button nodeid_decr = (Button) view.findViewById(R.id.decrement_node_button);
         nodeid_decr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -98,10 +101,38 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
                 nodeid.setText(cur_value.toString());
             }
         });
+        Button config_button = (Button) view.findViewById(R.id.button_marker_config);
+        config_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent configScreen = new Intent(v.getContext(), config.class);
+                configScreen.putExtra("nodeId",Integer.valueOf(nodeid.getText().toString()));
+                configScreen.putExtra("nodeType",nodeTypeSpinner.getSelectedItem().toString());
+                configScreen.putExtra("dbFileName",dbFileName);
+                startActivity(configScreen);
 
-            // Inflate and set the layout for the dialog
+            }
+        });
+
+        Button control_button = (Button) view.findViewById(R.id.button_marker_control);
+        control_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        Button stats_button = (Button) view.findViewById(R.id.button_marker_stats);
+        stats_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
-            builder.setView(v)
+            builder.setView(view)
                     .setPositiveButton(R.string.saveMarker, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id) {
                             // Send the positive button event back to the host activity
@@ -122,6 +153,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        mActivity = activity;
         // Verify that the host activity implements the callback interface
         try {
             // Instantiate the NoticeDialogListener so we can send events to the host
@@ -158,6 +190,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
         if (getArguments() != null) {
                 n_id = getArguments().getInt("node_id");
                 n_type = getArguments().getInt("node_type");
+                dbFileName = getArguments().getString("filename");
 
         }
 

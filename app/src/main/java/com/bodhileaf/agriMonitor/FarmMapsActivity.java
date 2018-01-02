@@ -245,6 +245,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
                 Bundle bundle = new Bundle();
                 bundle.putInt("node_id", marker_info.getNode_id());
                 bundle.putInt("node_type",marker_info.getNode_type());
+                bundle.putString("filename",dbFileName);
                 // Check if a click count was set, then display the click count.
 
                 DialogFragment newMarkerFragment = new MarkerDialogFragment();

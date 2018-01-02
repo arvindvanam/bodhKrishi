@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -44,7 +45,6 @@
                     android:layout_marginTop="80dp"
                     android:background="@drawable/edittextstyle"
                     android:gravity="center"
-                    android:hint="@string/prompt_email"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
                     android:singleLine="true"
@@ -62,7 +62,6 @@
                     android:layout_marginTop="80dp"
                     android:background="@drawable/edittextstyle"
                     android:gravity="center"
-                    android:hint="@string/prompt_password"
                     android:imeActionId="6"
                     android:imeActionLabel="@string/action_sign_in_short"
                     android:imeOptions="actionUnspecified"
@@ -72,7 +71,9 @@
                     android:textAlignment="textStart" />
 
             </android.support.design.widget.TextInputLayout>
-            <RelativeLayout
+
+            <android.support.constraint.ConstraintLayout
+                android:id="@+id/relativeLayout"
                 android:layout_width="match_parent"
                 android:layout_height="335dp">
 
@@ -81,13 +82,17 @@
                     style="?android:textAppearanceSmall"
                     android:layout_width="200dp"
                     android:layout_height="200dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_alignParentTop="true"
+                    android:layout_marginBottom="81dp"
                     android:layout_marginEnd="78dp"
-                    android:layout_marginTop="56dp"
+                    android:layout_marginStart="101dp"
+                    android:layout_marginTop="54dp"
                     android:background="@drawable/quick_signupicon"
-                    android:textStyle="bold" />
-            </RelativeLayout>
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </android.support.constraint.ConstraintLayout>
 
         </LinearLayout>
 
@@ -97,7 +102,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Bodh Kirshi"
+        android:text="Bodh Krishi"
         android:background="@drawable/gradient"
         android:textAlignment="center"
         android:textSize="30sp" />

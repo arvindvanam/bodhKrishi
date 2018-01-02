@@ -10,120 +10,235 @@
     <!-- TODO: Update blank fragment layout -->
 
     <EditText
-        android:id="@+id/actuatorNodeId"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="96dp"
-        android:background="@drawable/edittextstyle"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="1"
-        android:inputType="number"
-        android:singleLine="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <EditText
         android:id="@+id/soilMositureUpperThresh"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="31dp"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/edittextstyle"
         android:ems="10"
         android:gravity="center"
         android:hint="20"
         android:inputType="number"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/actuatorNodeId" />
+        app:layout_constraintStart_toEndOf="@+id/button_decr_upper_threshold"
+        app:layout_constraintTop_toBottomOf="@+id/preset_spinner_node_cfg" />
 
     <EditText
         android:id="@+id/soilMoistureLowerThresh"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="36dp"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="17dp"
+        android:layout_marginTop="16dp"
         android:background="@drawable/edittextstyle"
         android:ems="10"
         android:gravity="center"
         android:hint="0"
         android:inputType="number"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_decr_lower_threshold"
         app:layout_constraintTop_toBottomOf="@+id/soilMositureUpperThresh" />
 
     <EditText
         android:id="@+id/sampleRelWindow"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="29dp"
+        android:layout_width="80dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="43dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
         android:background="@drawable/edittextstyle"
         android:ems="10"
         android:gravity="center"
         android:hint="0"
         android:inputType="number"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/sensorInfoSaveButton"
+        app:layout_constraintStart_toEndOf="@+id/button_decr_sample_rel_window"
         app:layout_constraintTop_toBottomOf="@+id/soilMoistureLowerThresh" />
 
     <Button
         android:id="@+id/sensorInfoSaveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="69dp"
-        android:layout_marginTop="82dp"
+        android:layout_marginBottom="225dp"
+        android:layout_marginEnd="84dp"
+        android:layout_marginStart="96dp"
+        android:layout_marginTop="43dp"
         android:background="@drawable/buttonshape"
         android:text="save sensor info"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sampleRelWindow" />
 
     <TextView
         android:id="@+id/textView4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="79dp"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="96dp"
+        android:layout_marginEnd="97dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="31dp"
         android:text="Actuator \n Node Id"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/actuatorNodeId"
+        app:layout_constraintStart_toEndOf="@+id/nodeid_spinner_node_cfg"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/textView8"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="33dp"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="46dp"
+        android:layout_marginEnd="51dp"
+        android:layout_marginStart="31dp"
+        android:layout_marginTop="18dp"
         android:text="Soil Moisture \n upper threshold "
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/soilMositureUpperThresh"
-        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+        app:layout_constraintStart_toEndOf="@+id/button_incr_upper_threshold"
+        app:layout_constraintTop_toBottomOf="@+id/textView19" />
 
     <TextView
         android:id="@+id/textView9"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="33dp"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="58dp"
+        android:layout_marginEnd="51dp"
+        android:layout_marginStart="31dp"
+        android:layout_marginTop="21dp"
         android:text="Soil Moisture \n Lower threshold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/soilMoistureLowerThresh"
+        app:layout_constraintStart_toEndOf="@+id/button_incr_lower_threshold"
         app:layout_constraintTop_toBottomOf="@+id/textView8" />
 
     <TextView
         android:id="@+id/textView10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="28dp"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="37dp"
+        android:layout_marginBottom="48dp"
+        android:layout_marginEnd="46dp"
+        android:layout_marginStart="31dp"
+        android:layout_marginTop="18dp"
         android:text="sample relevance\n window"
+        app:layout_constraintBottom_toTopOf="@+id/sensorInfoSaveButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/sampleRelWindow"
+        app:layout_constraintStart_toEndOf="@+id/button_incr_sample_rel_window"
         app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
+    <Spinner
+        android:id="@+id/preset_spinner_node_cfg"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/edittextstyle"
+        android:gravity="center"
+        android:textAlignment="gravity"
+        app:layout_constraintBottom_toTopOf="@+id/soilMositureUpperThresh"
+        app:layout_constraintEnd_toStartOf="@+id/textView19"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nodeid_spinner_node_cfg" />
+
+    <Spinner
+        android:id="@+id/nodeid_spinner_node_cfg"
+        android:layout_width="200dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="12dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="31dp"
+        android:background="@drawable/edittextstyle"
+        android:gravity="center"
+        android:textAlignment="gravity"
+        app:layout_constraintBottom_toTopOf="@+id/preset_spinner_node_cfg"
+        app:layout_constraintEnd_toStartOf="@+id/textView4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView19"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="36dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="18dp"
+        android:text="Select Preset value\n(soil type based)"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/preset_spinner_node_cfg"
+        app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
+    <Button
+        android:id="@+id/button_decr_lower_threshold"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:text="-"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/button_decr_sample_rel_window"
+        app:layout_constraintEnd_toStartOf="@+id/soilMoistureLowerThresh"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_decr_upper_threshold" />
+
+    <Button
+        android:id="@+id/button_decr_sample_rel_window"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="316dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="14dp"
+        android:text="-"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/sampleRelWindow"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_decr_lower_threshold" />
+
+    <Button
+        android:id="@+id/button_incr_lower_threshold"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="+"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/soilMoistureLowerThresh"
+        app:layout_constraintTop_toBottomOf="@+id/button_incr_upper_threshold" />
+
+    <Button
+        android:id="@+id/button_incr_upper_threshold"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="17dp"
+        android:layout_marginTop="14dp"
+        android:text="+"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@+id/soilMositureUpperThresh"
+        app:layout_constraintTop_toBottomOf="@+id/preset_spinner_node_cfg" />
+
+    <Button
+        android:id="@+id/button_incr_sample_rel_window"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="43dp"
+        android:layout_marginStart="17dp"
+        android:layout_marginTop="14dp"
+        android:text="+"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/sensorInfoSaveButton"
+        app:layout_constraintStart_toEndOf="@+id/sampleRelWindow"
+        app:layout_constraintTop_toBottomOf="@+id/button_incr_lower_threshold" />
+
+    <Button
+        android:id="@+id/button_decr_upper_threshold"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="14dp"
+        android:text="-"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/button_decr_lower_threshold"
+        app:layout_constraintEnd_toStartOf="@+id/soilMositureUpperThresh"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/preset_spinner_node_cfg" />
 </android.support.constraint.ConstraintLayout>
