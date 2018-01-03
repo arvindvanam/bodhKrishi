@@ -6,7 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
 
 /**
- * Created by shwetathareja on 11/5/17.
+ * Created by Arvind Vanam on 11/5/17.
  */
 
 

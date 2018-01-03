@@ -51,6 +51,11 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             node_type=nodetype;
             click_count = 0;
         }
+        marker_data() {
+            click_count = 0;
+            node_id= 0;
+            node_type = 0;
+        }
 
         public Integer getNode_id() {
             return node_id;
@@ -63,6 +68,12 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
         }
         public void incrClick_count() {
             click_count++;
+        }
+        public void setNode_id(Integer nodeId) {
+            node_id = nodeId;
+        }
+        public void setNode_type(Integer nodetype) {
+            node_type = nodetype;
         }
 
     }
@@ -102,6 +113,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     private LatLng[] mLikelyPlaceLatLngs;
     private String dbFileName;
     private LatLng last_position;
+    private Marker cur_marker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,6 +249,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             /** Called when the user clicks a marker. */
             @Override
             public boolean onMarkerClick(final Marker marker) {
+                cur_marker = marker;
                 last_position = marker.getPosition();
                 marker_data marker_info = (marker_data) marker.getTag();
                 Log.d(TAG, "onMarkerClick: " );
@@ -300,11 +313,14 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             @Override
             public void onMapLongClick(LatLng latLng) {
                 last_position = latLng;
-                mMap.addMarker(new MarkerOptions()
+                Marker new_marker = mMap.addMarker(new MarkerOptions()
                         .position(latLng)
                         .title("Your marker title")
                         .snippet("Your marker snippet"));
+                new_marker.setTag(new marker_data());
+                cur_marker = new_marker;
             }
+
         });
     }
 
@@ -542,11 +558,35 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
         configScreen.putExtra("nodeType",mkNodetype.getSelectedItemPosition());
         configScreen.putExtra("dbFileName",dbFileName);
         SQLiteDatabase farmDb = openOrCreateDatabase(dbFileName, MODE_PRIVATE ,null) ;
+        String nodeCheckQuery = String.format("SELECT * from nodesInfo where nodeID is %d ",Integer.valueOf(mkNodeid.getText().toString()));
+        Cursor nodeCheckResult= farmDb.rawQuery(nodeCheckQuery,null);
+        if (nodeCheckResult.getCount() != 0) {
+            //DELETE the node entry is a match is found
+            String nodeDeleteQuery = String.format("DELETE from nodesInfo where nodeID is %d ",Integer.valueOf(mkNodeid.getText().toString()));
+            farmDb.execSQL(nodeDeleteQuery);
+            nodeCheckResult.close();
+        }
         String insertRowQuery = String.format("INSERT INTO nodesInfo(nodeID,nodeType,latitude,longitude) VALUES(%s,%d,'%f','%f')", mkNodeid.getText().toString(), mkNodetype.getSelectedItemPosition(), last_position.latitude, last_position.longitude);
         farmDb.execSQL(insertRowQuery);
         farmDb.close();
-        startActivity(configScreen);
-        setContentView(R.layout.activity_config);
+        marker_data marker_info = (marker_data) cur_marker.getTag();
+        marker_info.setNode_id(Integer.valueOf(mkNodeid.getText().toString()));
+        marker_info.setNode_type(mkNodetype.getSelectedItemPosition());
+        cur_marker.setTag(marker_info);
+        switch(mkNodetype.getSelectedItemPosition()) {
+            case 0:
+                cur_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.sensor));
+                break;
+            case 1:
+                cur_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.water_level));
+                break;
+            case 2:
+                cur_marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.water_tap));
+                break;
+        }
+
+        //startActivity(configScreen);
+        //setContentView(R.layout.activity_config);
     }
 
 

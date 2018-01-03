@@ -25,7 +25,7 @@
     <string name="pick_action_maps">Choose Source for Maps</string>
     <string name="nodeNum">100</string>
     <string name="nodeType">1</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_login">BODH KRISHI</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">name@domain.com</string>

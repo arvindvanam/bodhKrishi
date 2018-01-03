@@ -62,11 +62,13 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
 
         //Spinner
         final Spinner nodeTypeSpinner =  view.findViewById(R.id.spinner_node_type);
+        final Button config_button = (Button) view.findViewById(R.id.button_marker_config);
         nodeAdapter = new ArrayAdapter<>(view.getContext(), android.R.layout.simple_spinner_item, node_type_list);
         nodeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         nodeTypeSpinner.setAdapter(nodeAdapter);
         nodeid.setText(n_id.toString());
         nodeTypeSpinner.setSelection(n_type);
+
 
         nodeTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -74,6 +76,11 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
                 node_type_selection = position;
                 Log.d("Marker Dialog Fragment", "onCreateView: position="+Integer.valueOf(position).toString());
                 Toast.makeText(view.getContext(),"position: "+ Integer.valueOf(position).toString(),Toast.LENGTH_SHORT);
+                if(node_type_selection != 2)  { /*config only required for actuator node*/
+                    config_button.setVisibility(View.INVISIBLE);
+                } else {
+                    config_button.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -101,7 +108,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
                 nodeid.setText(cur_value.toString());
             }
         });
-        Button config_button = (Button) view.findViewById(R.id.button_marker_config);
+
         config_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

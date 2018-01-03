@@ -168,7 +168,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
                     //show all default values in the UI
                 } else {
                     //case where the selected node already existed
-                    String query = String.format("SELECT scheduleId FROM scheduleList where nodeId=%d" ,nodeId);
+                    String query = String.format("SELECT scheduleId FROM scheduleList where nodeId is %d" ,nodeId);
                     //check if the schedule id exists for the node id
                     Cursor nodeListResults = agriDb.rawQuery(query,null);
                     nodeListResults.moveToFirst();

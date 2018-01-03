@@ -104,6 +104,9 @@ public class config_sensor_info extends Fragment {
         final EditText soilMoistureLowThresh = (EditText) view.findViewById(R.id.soilMoistureLowerThresh);
         final EditText soilMoistureHighThresh = (EditText) view.findViewById(R.id.soilMositureUpperThresh);
         final EditText sampleRelWindow = (EditText) view.findViewById(R.id.sampleRelWindow);
+        soilMoistureLowThresh.setText("0");
+        soilMoistureHighThresh.setText("20");
+        sampleRelWindow.setText("0");
         final SQLiteDatabase agriDb = getActivity().openOrCreateDatabase(dbFileName, android.content.Context.MODE_PRIVATE, null);
 
         Button saveButton = (Button) view.findViewById(R.id.sensorInfoSaveButton);
@@ -131,13 +134,13 @@ public class config_sensor_info extends Fragment {
         nodeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String listEntry = nodeList.get(position);
+                String listEntry = nodeList.get(position).toString();
                 // case where the selected node is newly added
                 if (match) {
                     //show all default values in the UI
                 } else {
                     //case where the selected node already existed
-                    String query = String.format("SELECT * FROM params where actuatorNodeId=%d" ,nodeId);
+                    String query = String.format("SELECT * FROM params where actuatorNodeId is %s" ,listEntry);
                     //check if the schedule id exists for the node id
                     Cursor nodeListResults = agriDb.rawQuery(query,null);
                     nodeListResults.moveToFirst();
@@ -157,6 +160,63 @@ public class config_sensor_info extends Fragment {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
 
+            }
+        });
+        Button inc_low_thresh = view.findViewById(R.id.button_incr_lower_threshold);
+        Button dec_low_thresh = view.findViewById(R.id.button_decr_lower_threshold);
+        Button inc_high_thresh = view.findViewById(R.id.button_incr_upper_threshold);
+        Button dec_high_thresh = view.findViewById(R.id.button_decr_upper_threshold);
+        Button inc_rel_wind = view.findViewById(R.id.button_incr_sample_rel_window);
+        Button dec_rel_wind = view.findViewById(R.id.button_decr_sample_rel_window);
+        inc_low_thresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(soilMoistureLowThresh.getText().toString());
+                val++;
+                soilMoistureLowThresh.setText(val.toString());
+
+            }
+        });
+        dec_low_thresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(soilMoistureLowThresh.getText().toString());
+                val--;
+                soilMoistureLowThresh.setText(val.toString());
+
+            }
+        });
+        inc_high_thresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(soilMoistureHighThresh.getText().toString());
+                val++;
+                soilMoistureHighThresh.setText(val.toString());
+            }
+        });
+        dec_high_thresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(soilMoistureHighThresh.getText().toString());
+                val--;
+                soilMoistureHighThresh.setText(val.toString());
+
+            }
+        });
+        inc_rel_wind.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(sampleRelWindow.getText().toString());
+                val++;
+                sampleRelWindow.setText(val.toString());
+            }
+        });
+        dec_rel_wind.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Integer val = Integer.valueOf(sampleRelWindow.getText().toString());
+                val--;
+                sampleRelWindow.setText(val.toString());
             }
         });
         return view;
