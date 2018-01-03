@@ -133,6 +133,16 @@ static int a=0;
             }
         });
 
+        Button statsConnect = (Button) findViewById(R.id.button_options_stats);
+        statsConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent statsScreen = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.StatisticsActivity.class);
+                statsScreen.putExtra("filename",dbfilename);
+                startActivity(statsScreen);
+
+            }
+        });
 
     }
 

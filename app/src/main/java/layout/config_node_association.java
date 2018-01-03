@@ -113,7 +113,7 @@ public class config_node_association extends Fragment {
         ListView listView = (ListView) view.findViewById(R.id.nodeListView);
         listView.setAdapter(sensorAdapter);
         // Create a message handling object as an anonymous class.
-        listView.setOnItemLongClickListener(mMessageClickedHandler);
+        listView.setOnItemClickListener(mMessageClickedHandler);
 
         //setup Node Id Spinner
         nodeSpinner =  view.findViewById(R.id.sensor_nodeid_spinner_node_asc);
@@ -193,8 +193,8 @@ public class config_node_association extends Fragment {
         // Inflate the layout for this fragment
         return view;
     }
-    private AdapterView.OnItemLongClickListener mMessageClickedHandler = new AdapterView.OnItemLongClickListener() {
-        public  boolean onItemLongClick(AdapterView parent, View v, int position, long id) {
+    private AdapterView.OnItemClickListener mMessageClickedHandler = new AdapterView.OnItemClickListener() {
+        public  void onItemClick(AdapterView parent, View v, int position, long id) {
             deleteNodePosition = position;
             // provide option to delete node in alert box
 // 1. Instantiate an AlertDialog.Builder with its constructor
@@ -223,7 +223,6 @@ public class config_node_association extends Fragment {
 // 3. Get the AlertDialog from create()
             AlertDialog dialog = builder.create();
             dialog.show();
-            return true;
         }
     };
     // TODO: Rename method, update argument and hook method into UI event

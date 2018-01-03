@@ -121,18 +121,18 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
 
             if( getArguments().getInt(ARG_SECTION_NUMBER) == 1 ) {
 
-                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, true);
+                View rootView = inflater.inflate(R.layout.fragment_config_node_association, container, false);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section1_format));
                 return rootView;
             } else if( getArguments().getInt(ARG_SECTION_NUMBER) == 2 ) {
-                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, true);
+                View rootView = inflater.inflate(R.layout.fragment_config_sensor_info , container, false);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section2_format));
                 return rootView;
             }
             else {
-                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, true);
+                View rootView = inflater.inflate(R.layout.fragment_config_schedule , container, false);
                 //TextView textView = (TextView) rootView.findViewById(R.id.section_label);
                 //textView.setText(getString(R.string.section3_format));
                 return rootView;
@@ -163,7 +163,7 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
                 case 1: tab = layout.config_sensor_info.newInstance("sensor_info","hello");
                     tab.setArguments(nodeBundle);
                     break;
-                case 2: tab = layout.config_schedule.newInstance("schedule","hello");
+                case 2: tab = layout.config_schedule.newInstance("Schedule","hello");
                     tab.setArguments(nodeBundle);
                     break;
                 default :
@@ -183,9 +183,9 @@ public class config extends AppCompatActivity implements config_schedule.OnFragm
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 0:
-                    return "Node Association";
+                    return "Connect Valve & Sensors";
                 case 1:
-                    return "Actuator Node Config";
+                    return "Water Valve Config";
                 case 2:
                     return "Schedule";
             }

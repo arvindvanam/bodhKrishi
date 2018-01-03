@@ -80,7 +80,7 @@
         android:backgroundTint="@color/colorPrimaryDark"
         android:text="@string/Language"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/button6"
+        app:layout_constraintBottom_toTopOf="@+id/button_options_stats"
         app:layout_constraintTop_toBottomOf="@+id/manualMode"
         tools:layout_constraintBottom_creator="1"
         tools:layout_constraintLeft_creator="1"
@@ -102,7 +102,7 @@
         app:layout_constraintTop_toBottomOf="@+id/button3" />
 
     <Button
-        android:id="@+id/button6"
+        android:id="@+id/button_options_stats"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="match_parent"
         android:layout_height="30dp"
