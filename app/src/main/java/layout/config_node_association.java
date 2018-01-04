@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.bodhileaf.agriMonitor.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -59,6 +60,7 @@ public class config_node_association extends Fragment {
     List<String> all_sensor_list;
     ArrayAdapter<String> sensorAdapter;
     ArrayAdapter<String> allSensorAdapter;
+    HashMap<Integer, Integer> sensorTypeHashList;
 
 
     public config_node_association() {
@@ -107,6 +109,7 @@ public class config_node_association extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_config_node_association, container, false);
         sensor_list = new ArrayList<String>();
+        sensorTypeHashList = new HashMap<Integer, Integer>();
         agriDb = getActivity().openOrCreateDatabase(dbFileName, android.content.Context.MODE_PRIVATE, null);
         initNodeList(agriDb);
         sensorAdapter = new ArrayAdapter<String>(getActivity(),R.layout.row_item,R.id.node_name,sensor_list);
@@ -126,6 +129,7 @@ public class config_node_association extends Fragment {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String listEntry = nodeList.get(position).toString();
                 sensor_list.clear();
+                sensorTypeHashList.clear();
                     //case where the selected node already existed
                     String query = String.format("SELECT * FROM nodeAssociations where actuatorNodeID is %s" ,listEntry);
                     Log.d(TAG, "onItemSelected: query: "+query);
@@ -142,8 +146,13 @@ public class config_node_association extends Fragment {
                         Log.d(TAG, "onItemSelected: nodecnt: "+String.format("%d",nodeCnt));
                         for (int i=2; i<= 1+nodeCnt;i++) {
                             Integer val =  nodeListResults.getInt(i);
+                            query = "SELECT nodeType FROM nodesInfo WHERE nodeID="+val.toString();
+                            Cursor nodeResult=agriDb.rawQuery(query,null);
+                            nodeResult.moveToFirst();
                             Log.d(TAG, "onItemSelected: sensornode: "+String.format("%d",val));
                             sensor_list.add(val.toString());
+                            sensorTypeHashList.put(val,nodeResult.getInt(0));
+                            nodeResult.close();
                         }
 
                     }
@@ -177,6 +186,12 @@ public class config_node_association extends Fragment {
             public void onClick(View v) {
                 String query;
                 sensor_list.add(sensorSpinner.getSelectedItem().toString());
+                //put sensor_type in hash
+                query = "SELECT nodeType FROM nodesInfo WHERE nodeID="+nodeSpinner.getSelectedItem().toString();
+                Cursor nodeResult=agriDb.rawQuery(query,null);
+                nodeResult.moveToFirst();
+                sensorTypeHashList.put(Integer.valueOf(nodeSpinner.getSelectedItem().toString()),nodeResult.getInt(0));
+                nodeResult.close();
                 nodeCnt++;
                 if(nodeCnt == 1) {
                     query = String.format("INSERT into nodeAssociations(actuatorNodeID,associatedNodesCount,nodeID1) VALUES(%s,1,%s)",nodeSpinner.getSelectedItem().toString(),sensorSpinner.getSelectedItem().toString());
@@ -216,13 +231,27 @@ public class config_node_association extends Fragment {
                     Log.d(TAG, "onClick: delete node query :"+query);
                     agriDb.execSQL(query);
                     sensor_list.remove(deleteNodePosition);
+                    sensorTypeHashList.remove(deleteNodePosition);
                     sensorAdapter.notifyDataSetChanged();
                 }
-            });;
+            });
+            //builder.setNegativeButton("Navigate to farm", new DialogInterface.OnClickListener() {
+            //    @Override
+            //    public void onClick(DialogInterface dialog, int which) {
+            //        //got to maps activity based on location
+            //    }
+            //});
 
 // 3. Get the AlertDialog from create()
             AlertDialog dialog = builder.create();
             dialog.show();
+
+            //Button nbutton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+            //nbutton.setBackgroundResource(R.drawable.sensor);
+            //Button pbutton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            //pbutton.setBackgroundResource(android.R.drawable.ic_menu_delete);
+
+            //Set negative button background
         }
     };
     // TODO: Rename method, update argument and hook method into UI event

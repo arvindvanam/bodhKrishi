@@ -21,6 +21,8 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import org.eclipse.paho.client.mqttv3.MqttClient;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -125,7 +127,13 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
         control_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent mqttGui = new Intent(v.getContext(), com.bodhileaf.agriMonitor.MqttGuiActivity.class);
+                String mqtt_link = "tcp://192.168.0.3:1883";
+                String clientId = MqttClient.generateClientId();
+                mqttGui.putExtra("link",mqtt_link);
+                mqttGui.putExtra("clientid",clientId);
+                mqttGui.putExtra("filename",dbFileName);
+                startActivity(mqttGui);
             }
         });
 
@@ -133,7 +141,10 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
         stats_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent statsScreen = new Intent(v.getContext(), com.bodhileaf.agriMonitor.StatisticsActivity.class);
+                statsScreen.putExtra("filename",dbFileName);
+                statsScreen.putExtra("nodeId",Integer.valueOf(nodeid.getText().toString()));
+                startActivity(statsScreen);
             }
         });
 
