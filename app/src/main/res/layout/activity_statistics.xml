@@ -5,130 +5,237 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient"
-    tools:context="com.bodhileaf.agriMonitor.StatisticsActivity">
+    tools:context="com.bodhileaf.agriMonitor.StatisticsActivity"
+    tools:layout_editor_absoluteY="81dp">
+
+    <TextView
+        android:id="@+id/textView34"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-80dB"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="303dp"
+        tools:layout_editor_absoluteY="281dp" />
+
+    <TextView
+        android:id="@+id/textView27"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="WIFI\n STRENGTH"
+        android:textAlignment="center"
+        android:textSize="6sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="244dp"
+        tools:layout_editor_absoluteY="313dp" />
+
+    <TextView
+        android:id="@+id/textView29"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="SOIL\n TEMPERATURE"
+        android:textAlignment="center"
+        android:textSize="6sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="244dp"
+        tools:layout_editor_absoluteY="222dp" />
 
     <Spinner
         android:id="@+id/spinner2"
         android:layout_width="150dp"
         android:layout_height="30dp"
-        android:layout_marginBottom="6dp"
-        android:layout_marginEnd="131dp"
-        android:layout_marginStart="130dp"
-        android:layout_marginTop="1dp"
         android:background="@drawable/edittextstyle"
-        app:layout_constraintBottom_toTopOf="@+id/imageButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stats_node_type_text_view" />
+        tools:layout_editor_absoluteX="130dp"
+        tools:layout_editor_absoluteY="39dp" />
 
     <ImageButton
-        android:id="@+id/imageButton"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginEnd="106dp"
-        android:layout_marginStart="105dp"
-        android:layout_marginTop="6dp"
-        android:scaleType="fitXY"
+        android:id="@+id/button_stats_hourly_chart"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:background="@drawable/buttonshape"
-        app:layout_constraintBottom_toTopOf="@+id/textView21"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner2"
-        app:srcCompat="@drawable/current_chart" />
-
-    <ImageButton
-        android:id="@+id/imageButton2"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="1dp"
-        android:layout_marginEnd="106dp"
-        android:layout_marginStart="105dp"
-        android:layout_marginTop="5dp"
         android:scaleType="fitXY"
-        android:background="@drawable/buttonshape"
-        app:layout_constraintBottom_toTopOf="@+id/textView22"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView21"
-        app:srcCompat="@drawable/hourly_chart" />
+        app:srcCompat="@drawable/hourly_chart"
+        tools:layout_editor_absoluteX="43dp"
+        tools:layout_editor_absoluteY="16dp" />
 
     <ImageButton
         android:id="@+id/imageButton3"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginEnd="106dp"
-        android:layout_marginStart="105dp"
-        android:layout_marginTop="7dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:background="@drawable/buttonshape"
         android:scaleType="fitXY"
-        app:layout_constraintBottom_toTopOf="@+id/textView23"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView22"
-        app:srcCompat="@drawable/daily_chart" />
+        app:srcCompat="@drawable/daily_chart"
+        tools:layout_editor_absoluteX="290dp"
+        tools:layout_editor_absoluteY="16dp" />
 
     <TextView
         android:id="@+id/textView21"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="6dp"
-        android:layout_marginEnd="167dp"
-        android:layout_marginStart="166dp"
         android:text="CURRENT STATS"
         android:textAlignment="center"
-        android:textSize="10sp"
+        android:textSize="12sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/imageButton2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton" />
+        tools:layout_editor_absoluteX="166dp"
+        tools:layout_editor_absoluteY="138dp" />
 
     <TextView
         android:id="@+id/textView22"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="7dp"
-        android:layout_marginEnd="169dp"
-        android:layout_marginStart="169dp"
-        android:layout_marginTop="1dp"
         android:text="HOURLY CHART"
         android:textAlignment="center"
         android:textSize="10sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/imageButton3"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton2" />
+        tools:layout_editor_absoluteX="43dp"
+        tools:layout_editor_absoluteY="91dp" />
 
     <TextView
         android:id="@+id/textView23"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="134dp"
-        android:layout_marginEnd="174dp"
-        android:layout_marginStart="174dp"
+        android:layout_width="74dp"
+        android:layout_height="13dp"
         android:text="DAILY CHART"
         android:textAlignment="center"
         android:textSize="10sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageButton3" />
+        tools:layout_editor_absoluteX="290dp"
+        tools:layout_editor_absoluteY="91dp" />
 
     <TextView
         android:id="@+id/stats_node_type_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="1dp"
-        android:layout_marginEnd="179dp"
-        android:layout_marginStart="179dp"
-        android:layout_marginTop="16dp"
         android:text="SENSOR#"
         android:textSize="12sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/spinner2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        tools:layout_editor_absoluteX="179dp"
+        tools:layout_editor_absoluteY="23dp" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/gradient"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/air_moisture"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="172dp" />
+
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/gradient"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/air_temperature"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="263dp" />
+
+    <ImageView
+        android:id="@+id/imageView6"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/gradient"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/soil_temperature"
+        tools:layout_editor_absoluteX="244dp"
+        tools:layout_editor_absoluteY="172dp" />
+
+    <ImageView
+        android:id="@+id/imageView7"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/gradient"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/soil_moisture"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="354dp" />
+
+    <ImageView
+        android:id="@+id/imageView8"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/gradient"
+        android:scaleType="fitXY"
+        app:srcCompat="@drawable/wifi_strength"
+        tools:layout_editor_absoluteX="244dp"
+        tools:layout_editor_absoluteY="263dp" />
+
+    <TextView
+        android:id="@+id/textView25"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="AIR TEMPERATURE"
+        android:textAlignment="center"
+        android:textSize="6sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="313dp" />
+
+    <TextView
+        android:id="@+id/textView26"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="SOIL\n MOISTURE"
+        android:textAlignment="center"
+        android:textSize="6sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="404dp" />
+
+    <TextView
+        android:id="@+id/textView28"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="AIR\n HUMIDITY"
+        android:textAlignment="center"
+        android:textSize="6sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="55dp"
+        tools:layout_editor_absoluteY="222dp" />
+
+    <TextView
+        android:id="@+id/textView30"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="30 deg C"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="303dp"
+        tools:layout_editor_absoluteY="195dp" />
+
+    <TextView
+        android:id="@+id/textView33"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="26 deg C"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="118dp"
+        tools:layout_editor_absoluteY="281dp" />
+
+    <TextView
+        android:id="@+id/textView32"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="200 ppm"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="118dp"
+        tools:layout_editor_absoluteY="195dp" />
+
+    <TextView
+        android:id="@+id/textView31"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="100 ppm"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        tools:layout_editor_absoluteX="118dp"
+        tools:layout_editor_absoluteY="376dp" />
 </android.support.constraint.ConstraintLayout>

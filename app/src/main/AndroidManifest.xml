@@ -28,18 +28,18 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        >
         <service android:name="org.eclipse.paho.android.service.MqttService" />
 
         <activity
             android:name=".LoginActivity"
             android:configChanges="orientation|keyboardHidden"
-            android:windowSoftInputMode="stateHidden"
             android:label="@string/title_activity_login"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -56,8 +56,7 @@
             android:configChanges="orientation|keyboardHidden"
             android:label="@string/title_activity_settings"
             android:parentActivityName=".OptionsActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
@@ -68,7 +67,7 @@
             android:label="@string/title_activity_config"
             android:parentActivityName=".OptionsActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+          >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
@@ -102,10 +101,13 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bodhileaf.agriMonitor.OptionsActivity" />
         </activity>
-        <activity android:name=".StatisticsActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".MqttGuiActivity"
-            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".StatisticsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MqttGuiActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".LineChartActivity"></activity>
     </application>
 
 </manifest>
