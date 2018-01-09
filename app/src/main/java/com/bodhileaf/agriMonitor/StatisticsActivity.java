@@ -77,30 +77,46 @@ public class StatisticsActivity extends AppCompatActivity {
         initNodeList(agriDb);
 
         //create UI references
-        iv_air_temp = findViewById(R.id.stats_image_air_temp);
+
         iv_air_humid = findViewById(R.id.stats_image_air_humid);
-        iv_soil_temp = findViewById(R.id.stats_image_soil_temp);
+        iv_air_temp = findViewById(R.id.stats_image_air_temp);
         iv_soil_moisture = findViewById(R.id.stats_image_soil_mositure);
+        iv_soil_temp = findViewById(R.id.stats_image_soil_temp);
         iv_wifi_strength = findViewById(R.id.stats_image_wifi_strength);
-        iv_water_flow_rate = findViewById(R.id.stats_image_air_temp);
-        iv_water_level = findViewById(R.id.stats_image_soil_temp);
-        iv_actuation_status = findViewById(R.id.stats_image_soil_temp);
+        iv_water_flow_rate = findViewById(R.id.stats_image_air_humid);
+        iv_water_level = findViewById(R.id.stats_image_soil_mositure);
+        iv_actuation_status = findViewById(R.id.stats_image_soil_mositure);
         val_air_temp = findViewById(R.id.stats_air_temp_val);
         val_air_humid = findViewById(R.id.stats_air_humid_val);
         val_soil_temp = findViewById(R.id.stats_soil_temp_val);
         val_soil_moisture = findViewById(R.id.stats_soil_moisture_val);
         val_wifi_strength = findViewById(R.id.stats_wifi_strength_val);
-        val_water_flow_rate = findViewById(R.id.stats_air_temp_val);
-        val_water_level = findViewById(R.id.stats_soil_temp_val);
-        val_actuation_status = findViewById(R.id.stats_soil_temp_val);
+        val_water_flow_rate = findViewById(R.id.stats_air_humid_val);
+        val_water_level = findViewById(R.id.stats_soil_moisture_val);
+        val_actuation_status = findViewById(R.id.stats_soil_moisture_val);
         title_air_temp = findViewById(R.id.stats_title_air_temp);
         title_air_humid = findViewById(R.id.stats_title_air_humid);
         title_soil_temp = findViewById(R.id.stats_title_soil_temp);
         title_soil_moisture = findViewById(R.id.stats_title_soil_mositure);
         title_wifi_strength = findViewById(R.id.stats_title_wifi_strength);
-        title_water_flow_rate = findViewById(R.id.stats_title_air_temp);
-        title_water_level = findViewById(R.id.stats_title_soil_temp);
-        title_actuation_status = findViewById(R.id.stats_title_soil_temp);
+        title_water_flow_rate = findViewById(R.id.stats_title_air_humid);
+        title_water_level = findViewById(R.id.stats_title_soil_mositure);
+        title_actuation_status = findViewById(R.id.stats_title_soil_mositure);
+        iv_air_temp.setVisibility(View.INVISIBLE);
+        iv_air_humid.setVisibility(View.INVISIBLE);
+        iv_soil_temp.setVisibility(View.INVISIBLE);
+        iv_soil_moisture.setVisibility(View.INVISIBLE);
+        iv_wifi_strength.setVisibility(View.INVISIBLE);
+        val_air_temp.setVisibility(View.INVISIBLE);
+        val_air_humid.setVisibility(View.INVISIBLE);
+        val_soil_temp.setVisibility(View.INVISIBLE);
+        val_soil_moisture.setVisibility(View.INVISIBLE);
+        val_wifi_strength.setVisibility(View.INVISIBLE);
+        title_air_temp.setVisibility(View.INVISIBLE);
+        title_air_humid.setVisibility(View.INVISIBLE);
+        title_soil_temp.setVisibility(View.INVISIBLE);
+        title_soil_moisture.setVisibility(View.INVISIBLE);
+        title_wifi_strength.setVisibility(View.INVISIBLE);
 
         nodeSpinner = findViewById(R.id.stats_node_spinner);
         nodeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, nodeList);
@@ -128,10 +144,31 @@ public class StatisticsActivity extends AppCompatActivity {
                 switch (nodeType) {
                     case 0:
                         //case where the selected node already existed
-                        query = String.format("SELECT airTemperature,airHumidity,soilTemperature,soilMoisture,wifiStrength FROM sensorData WHERE nodeID=%d ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", nodeID);
+                        query = String.format("SELECT airTemperature,airHumidity,soilTemperature,soilMoisture,wifiStrength FROM sensorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
                         Log.d(TAG, "onItemSelected: "+query);
                         nodeListResults = agriDb.rawQuery(query, null);
                         nodeListResults.moveToFirst();
+                        iv_air_temp.setVisibility(View.VISIBLE);
+                        iv_air_humid.setVisibility(View.VISIBLE);
+                        iv_soil_temp.setVisibility(View.VISIBLE);
+                        iv_soil_moisture.setVisibility(View.VISIBLE);
+                        iv_wifi_strength.setVisibility(View.VISIBLE);
+                        val_air_temp.setVisibility(View.VISIBLE);
+                        val_air_humid.setVisibility(View.VISIBLE);
+                        val_soil_temp.setVisibility(View.VISIBLE);
+                        val_soil_moisture.setVisibility(View.VISIBLE);
+                        val_wifi_strength.setVisibility(View.VISIBLE);
+                        title_air_temp.setVisibility(View.VISIBLE);
+                        title_air_humid.setVisibility(View.VISIBLE);
+                        title_soil_temp.setVisibility(View.VISIBLE);
+                        title_soil_moisture.setVisibility(View.VISIBLE);
+                        title_wifi_strength.setVisibility(View.VISIBLE);
+                        val_air_temp.setText("");
+                        val_air_humid.setText("");
+                        val_soil_temp.setText("");
+                        val_soil_moisture.setText("");
+                        val_wifi_strength.setText("");
+
                         if (nodeListResults.getCount() != 0) {
                             val_air_temp.setText(String.format("%.2f deg C",nodeListResults.getFloat(0)));
                             val_air_humid.setText(String.format("%.2f ppm",nodeListResults.getFloat(1)));
@@ -139,32 +176,87 @@ public class StatisticsActivity extends AppCompatActivity {
                             val_soil_moisture.setText(String.format("%.2f ppm",nodeListResults.getFloat(3)));
                             val_wifi_strength.setText(String.format("%.2f dB",nodeListResults.getFloat(4)));
                                 //load default values in the UI
-                            } else {
+                        } else {
                             Toast.makeText(getApplicationContext(),"Couldn't find sensor Info",Toast.LENGTH_LONG).show();
-                            }
+                        }
+
                             break;
                         case 1:
-                            //case where the selected node already existed
-                            query = String.format("SELECT * FROM sensorData where NodeID is %s", listEntry);
-                            //check if the schedule id exists for the node id
+                            query = String.format("SELECT waterLevel,wifiStrength FROM sensorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
+                            Log.d(TAG, "onItemSelected: "+query);
+                            title_water_level.setText("WATER LEVEL");
+                            iv_air_temp.setVisibility(View.INVISIBLE);
+                            iv_air_humid.setVisibility(View.INVISIBLE);
+                            iv_soil_temp.setVisibility(View.INVISIBLE);
+                            iv_soil_moisture.setVisibility(View.VISIBLE);
+                            iv_wifi_strength.setVisibility(View.VISIBLE);
+                            val_air_temp.setVisibility(View.INVISIBLE);
+                            val_air_humid.setVisibility(View.INVISIBLE);
+                            val_soil_temp.setVisibility(View.INVISIBLE);
+                            val_soil_moisture.setVisibility(View.VISIBLE);
+                            val_wifi_strength.setVisibility(View.VISIBLE);
+                            title_air_temp.setVisibility(View.INVISIBLE);
+                            title_air_humid.setVisibility(View.INVISIBLE);
+                            title_soil_temp.setVisibility(View.INVISIBLE);
+                            title_soil_moisture.setVisibility(View.VISIBLE);
+                            title_wifi_strength.setVisibility(View.VISIBLE);
+                            val_soil_moisture.setText("");
+                            val_wifi_strength.setText("");
+
                             nodeListResults = agriDb.rawQuery(query, null);
                             nodeListResults.moveToFirst();
                             if (nodeListResults.getCount() != 0) {
+                                val_water_level.setText(String.format("%.2f cm",nodeListResults.getFloat(0)));
+                                val_wifi_strength.setText(String.format("%.2f dB",nodeListResults.getFloat(1)));
+
                                 //load default values in the UI
                             } else {
-                                //TODO: add toast to show node info doesnt exist
+                                Toast.makeText(getApplicationContext(),"Couldn't find sensor Info",Toast.LENGTH_LONG).show();
                             }
                             break;
+
                         case 2:
-                            //case where the selected node already existed
-                            query = String.format("SELECT * FROM actuatorData where NodeID is %s", listEntry);
-                            //check if the schedule id exists for the node id
+                            iv_air_temp.setVisibility(View.INVISIBLE);
+                            iv_air_humid.setVisibility(View.VISIBLE);
+                            iv_soil_temp.setVisibility(View.INVISIBLE);
+                            iv_soil_moisture.setVisibility(View.VISIBLE);
+                            iv_wifi_strength.setVisibility(View.VISIBLE);
+                            val_air_temp.setVisibility(View.INVISIBLE);
+                            val_soil_temp.setVisibility(View.INVISIBLE);
+                            val_air_humid.setVisibility(View.VISIBLE);
+                            val_soil_moisture.setVisibility(View.VISIBLE);
+                            val_wifi_strength.setVisibility(View.VISIBLE);
+                            title_air_temp.setVisibility(View.INVISIBLE);
+                            title_air_humid.setVisibility(View.VISIBLE);
+                            title_soil_temp.setVisibility(View.INVISIBLE);
+                            title_soil_moisture.setVisibility(View.VISIBLE);
+                            title_wifi_strength.setVisibility(View.VISIBLE);
+                            val_air_humid.setText("");
+                            val_soil_moisture.setText("");
+                            val_wifi_strength.setText("");
+                            query = String.format("SELECT waterFlowRate,wifiStrength FROM sensorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
+                            Log.d(TAG, "onItemSelected: "+query);
+                            title_water_flow_rate.setText("WATER FLOW RATE");
+                            title_actuation_status.setText("WATER VALVE STATUS");
                             nodeListResults = agriDb.rawQuery(query, null);
                             nodeListResults.moveToFirst();
-                            if (nodeListResults.getCount() == 0) {
-                                //load default values in the UI
+                            if (nodeListResults.getCount() != 0) {
+                                val_water_flow_rate.setText(String.format("%.2f L/min",nodeListResults.getFloat(0)));
+                                val_wifi_strength.setText(String.format("%.2f dB",nodeListResults.getFloat(1)));
                             } else {
-                                //TODO: add toast to show node info doesnt exist
+                                Toast.makeText(getApplicationContext(),"Couldn't find sensor Info",Toast.LENGTH_LONG).show();
+                            }
+                            query = String.format("SELECT actuationStatus FROM actuatorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
+                            nodeListResults = agriDb.rawQuery(query, null);
+                            nodeListResults.moveToFirst();
+                            if (nodeListResults.getCount() != 0) {
+                                if(nodeListResults.getInt(0) == 1) {
+                                    val_actuation_status.setText("ON");
+                                } else {
+                                    val_actuation_status.setText("OFF");
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(),"Couldn't find actuator Info",Toast.LENGTH_LONG).show();
                             }
                             break;
                         default:
