@@ -2,25 +2,101 @@ package com.bodhileaf.agriMonitor;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.util.Log;
 
-import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Created by Arvind Vanam on 11/5/17.
  */
 
 
-public class MyDatabase extends SQLiteAssetHelper {
-
+public class MyDatabase {
+    private static final String TAG = MyDatabase.class.getSimpleName() ;
+    private String databasePath;
+    private String assetPath;
+    private Context mContext;
     private static final String DATABASE_NAME = "golden.db";
     private static final int DATABASE_VERSION = 1;
+    private static final String ASSET_DB_PATH = "databases";
     private static MyDatabase instance;
+    private SQLiteDatabase goldenDb=null;
 
     public MyDatabase(Context  context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        assetPath = ASSET_DB_PATH + "/" + DATABASE_NAME;
+        databasePath = context.getApplicationInfo().dataDir + "/databases";
+        mContext = context;
+
+
+//        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     public SQLiteDatabase getDatabase() {
-        return getWritableDatabase();
+        InputStream inputFile = null;
+        if (goldenDb != null && goldenDb.isOpen()) {
+            return goldenDb;  // The database is already open
+        }
+
+
+        File outFile = new File (databasePath + "/" + DATABASE_NAME);
+        //Check if file already exists in local folder
+        if (outFile.exists()) {
+            try {
+                goldenDb = SQLiteDatabase.openDatabase(databasePath+"/"+DATABASE_NAME, null, SQLiteDatabase.OPEN_READONLY);
+                Log.i(TAG, "successfully opened database " + DATABASE_NAME);
+                return goldenDb;
+            } catch (SQLiteException e) {
+                Log.w(TAG, "could not open database " + outFile + " - " + e.getMessage());
+                return null;
+            }
+        }
+
+        //create output directory in app folder if doesnt exist
+        File f = new File(databasePath + "/");
+        if (!f.exists()) { f.mkdir(); }
+
+        //get input file stream
+        try {
+            inputFile =  mContext.getAssets().open(assetPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //write to output file in internal storage
+        try {
+            writeExtractedFileToDisk(inputFile, new FileOutputStream(outFile));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //check now if the database is created
+        if (outFile.exists()) {
+            try {
+                goldenDb = SQLiteDatabase.openDatabase(databasePath+"/"+DATABASE_NAME, null, SQLiteDatabase.OPEN_READONLY);
+                Log.i(TAG, "successfully opened database " + DATABASE_NAME);
+                return goldenDb;
+            } catch (SQLiteException e) {
+                Log.w(TAG, "could not open database " + outFile + " - " + e.getMessage());
+                return null;
+            }
+        }
+
+        return goldenDb;
+    }
+
+    public static void writeExtractedFileToDisk(InputStream in, OutputStream outs) throws IOException {
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = in.read(buffer))>0){
+            outs.write(buffer, 0, length);
+        }
+        outs.flush();
+        outs.close();
+        in.close();
     }
 }

@@ -46,25 +46,46 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveClient;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResource;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.google.android.gms.drive.OpenFileActivityOptions;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> , FarmListFragment.FarmSourceListener{
+public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> , FarmListFragment.FarmSourceListener, FarmDetailsDialogFragment.FarmDetailsDialogListener{
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -75,6 +96,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private static final int FILE_SELECT_CODE = 99;
     private String dbfilename;
+    private String farmName=null;
+    private DriveFolder curFolder=null;
+    private DriveContents curFileContents =null;
+    private DriveFolder rootFolder=null;
+    private DriveFile farmDriveFile=null;
+    private MetadataBuffer rootFolderList=null;
+    boolean folder_found=false;
 
     /**
      * Request code for the file opener activity.
@@ -102,7 +130,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     private void showFileChooser() {
         Intent  intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
+        intent.setType("application/x-sqlite3");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
 
         try {
@@ -225,21 +253,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     // Create new DB which copies table schemas from golden db
-    private void createNewDB(String path) {
-        SQLiteDatabase baseDB = openOrCreateDatabase("databases/golden.db",MODE_PRIVATE,null);
-        //File fileMetadata = new File();
-        //fileMetadata.setName("Project plan");
-        //fileMetadata.setMimeType("application/vnd.google-apps.drive-sdk");
+    private void createNewDB(String path, String name) {
+        //copy golden db to the database named by name string at path provided by path String
+        MyDatabase myDB = new MyDatabase(getApplicationContext());
+        SQLiteDatabase goldenDb = myDB.getDatabase();
+        File iFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+"databases/golden.db");
+        File oFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+path+"/"+name);
+        InputStream iStream = null;
+        try {
+            iStream = new FileInputStream(iFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        OutputStream oStream=null;
+        try {
+            oStream = new FileOutputStream(oFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
 
-        //File file = driveService.files().create(fileMetadata)
-        //       .setFields("id")
-        //      .execute();
-        //System.out.println("File ID: " + file.getId());
-
-
-
-
-
+            myDB.writeExtractedFileToDisk(iStream,oStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -297,7 +334,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Configure sign-in to request the user's ID, email address, and basic
 // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
+                //.requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
+                .requestScopes(Drive.SCOPE_FILE,Drive.SCOPE_APPFOLDER)
                 .requestServerAuthCode(serverClientId)
                 .requestEmail()
                 .build();
@@ -598,49 +636,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         Log.d("Main Activity", "onFarmSourceSelect: result: "+Integer.toString(result));
         switch (result) {
             case 0:
+                //OPEN LAST USED FARM
+                //GO DIRECTLY TO MAPS ACTIVITY
 
-
-
-                //TODO: Open create new file dialog box
-                DriveClient mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
-                // Create the initial metadata - MIME type and title.
-                // Note that the user will be able to change the title later.
-                MetadataChangeSet metadataChangeSet =
-                        new MetadataChangeSet.Builder()
-                                .setMimeType("*/*")
-                                .setTitle("Android .db")
-                                .build();
-                // Set up options to configure and display the create file activity.
-                OpenFileActivityOptions openFileActivityOptions =
-                        new OpenFileActivityOptions.Builder()
-                                .setMimeType(Collections.singletonList("*/*"))
-                                .build();
-
-                mDriveClient.newOpenFileActivityIntentSender(openFileActivityOptions)
-                        .addOnSuccessListener(new OnSuccessListener<IntentSender>() {
-                            @Override
-                            public void onSuccess(IntentSender intentSender) {
-                                try {
-                                    startIntentSenderForResult(
-                                            intentSender,
-                                            REQUEST_CODE_OPENER,
-                            /* fillInIntent= */ null,
-                            /* flagsMask= */ 0,
-                            /* flagsValues= */ 0,
-                            /* extraFlags= */ 0);
-                                } catch (IntentSender.SendIntentException e) {
-                                    Log.w(TAG, "Unable to send intent.", e);
-                                }
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Unable to create OpenFileActivityIntent.", e);
-                    }
-                });
-
-
-                //startActivity(optionsScreen);
 
                 break;
 
@@ -649,7 +647,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 if(dbfilename == null) {
                     showFileChooser();
                 }
-                //startActivity(optionsScreen);
 
                 Log.d("main Activity", "onFarmSourceSelect: file chooser done");
 
@@ -657,6 +654,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 break;
 
             case 2:
+                // CREATE NEW FARM
+                DialogFragment farmNameFragment = new FarmDetailsDialogFragment();
+                farmNameFragment.show(getFragmentManager(), "FarmName");
+
+
+                //startActivity(optionsScreen);
                 //startActivity(optionsScreen);
                 break;
             default:
@@ -664,6 +667,157 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         }
     }
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+
+        EditText et_farm_name = (EditText) dialog.getDialog().getWindow().findViewById(R.id.tv_farm_name);
+        farmName = et_farm_name.getText().toString();
+        Log.d(TAG, "onDialogPositiveClick: farmName:"+farmName);
+        if(farmName == null) {
+            Toast.makeText(this,"Invalid file name provided",Toast.LENGTH_LONG);
+            Log.d(TAG, "onFarmSourceSelect: Invalid file name provided");
+            return;
+        }
+        createNewDB("databases",farmName+".db");
+        Toast.makeText(this,"farm created"+farmName,Toast.LENGTH_LONG);
+        //TODO: Open create new file dialog box
+        //DriveClient mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
+        final DriveResourceClient mDriveClient=  Drive.getDriveResourceClient (this, GoogleSignIn.getLastSignedInAccount(this));
+
+        //DriveFolder rootFolder = rootFolderTask.getResult();
+       // final Task<DriveContents> createContentsTask = mDriveClient.createContents();
+
+        //final Task<MetadataBuffer> checkFolderExists =
+       // MetadataBuffer childFolders = checkFolderExists.getResult();
+        //if (childFolders.getCount() == 0) {
+        final Task<MetadataBuffer> checkFolderExistsTask =
+            mDriveClient
+                    .getRootFolder()
+                    .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                        @Override
+                        public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                            Query query = new Query.Builder()
+                                    .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiApp"))
+                                    .build();
+                            rootFolder = task.getResult();
+                            return mDriveClient.queryChildren(rootFolder,query);
+                        }
+                    })
+                    .addOnSuccessListener(this,
+                            new OnSuccessListener<MetadataBuffer>() {
+                                @Override
+                                public void onSuccess(MetadataBuffer childFolders) {
+                                    boolean found =false;
+                                    if (childFolders.getCount() == 0) {
+                                        folder_found = false;
+                                    } else {
+                                        folder_found = true;
+                                        curFolder = childFolders.get(0).getDriveId().asDriveFolder();
+                                        Log.d(TAG, String.format("onSuccess:checkFolderExistsTask  folder:%s ready to be accessed in Login activity",childFolders.get(0).getDriveId().encodeToString()));
+                                    }
+
+                                }
+                            }
+                    )
+                    .addOnFailureListener(this, new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e(TAG, "Unable to create folder", e);
+                            finish();
+                        }
+                    });
+             Task <DriveFolder> createNewFolderTask = checkFolderExistsTask
+                     .continueWithTask(new Continuation<MetadataBuffer, Task<DriveFolder>>() {
+                         @Override
+                         public Task<DriveFolder> then (@NonNull Task<MetadataBuffer> task) throws Exception {
+
+                             if(!folder_found) {
+                                 MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                         .setTitle("bodhKrishiApp")
+                                         .setMimeType(DriveFolder.MIME_TYPE)
+                                         .setStarred(true)
+                                         .build();
+                                 return mDriveClient.createFolder(rootFolder, changeSet);
+                             } else {
+                                 //dummy task
+                                 return mDriveClient.getAppFolder();
+                             }
+                         }
+                     })
+                     .addOnSuccessListener(this,new OnSuccessListener<DriveFolder>() {
+                             @Override
+                             public void onSuccess(DriveFolder currentFolder) {
+                                 if(!folder_found) {
+                                     //new folder created
+                                     curFolder = currentFolder;
+                                     Log.d(TAG, String.format("onSuccess:createNewFolderExistsTask  folder:%s ready to be accessed in Login activity",currentFolder.getDriveId().encodeToString()));
+
+                                 }
+                             }
+                         }
+                     )
+                     .addOnFailureListener(this, new OnFailureListener() {
+                             @Override
+                             public void onFailure(@NonNull Exception e) {
+                                 Log.e(TAG, "Unable to create folder", e);
+                                 finish();
+                             }
+                     });
+        //     Tasks.whenAll(createNewFolderTask).conti;//Create new folder task
+
+
+
+        final Task<DriveContents> createContentsTask = mDriveClient.createContents();
+
+        Tasks.whenAll(createNewFolderTask, createContentsTask)
+                .continueWithTask(new Continuation<Void, Task<DriveFile>>() {
+                    @Override
+                    public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
+                        curFileContents = createContentsTask.getResult();
+                        OutputStream outStream = curFileContents.getOutputStream();
+                        File inFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/databases/" + farmName + ".db");
+                        InputStream inStream = null;
+                        if (inFile.exists()) {
+                            try {
+                                inStream = new FileInputStream(inFile);
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        try {
+                            MyDatabase.writeExtractedFileToDisk(inStream, outStream);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        MetadataChangeSet fileChangeSet = new MetadataChangeSet.Builder()
+                                .setTitle(farmName + ".db")
+                                .setMimeType("application/x-sqlite3")
+                                .setStarred(true)
+                                .build();
+                        return mDriveClient.createFile(curFolder, fileChangeSet, curFileContents);
+                    }
+        })
+                .addOnSuccessListener(this,
+                        new OnSuccessListener<DriveFile>() {
+                            @Override
+                            public void onSuccess(DriveFile driveFile) {
+                                farmDriveFile = driveFile;
+                                Log.d(TAG, String.format("onSuccess:create file task  file:%s ready to be accessed in Login activity",farmDriveFile.getDriveId().encodeToString()));
+                            }
+                        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Unable to create file", e);
+                    }
+                });
+    }
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+
+    }
+
 }
 
 

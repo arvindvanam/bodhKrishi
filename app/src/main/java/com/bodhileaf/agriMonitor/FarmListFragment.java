@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 
 /**
@@ -20,7 +21,7 @@ import android.view.ViewGroup;
  * Use the {@link FarmListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class FarmListFragment extends DialogFragment{
+public class FarmListFragment extends DialogFragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -29,6 +30,7 @@ public class FarmListFragment extends DialogFragment{
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
 
     public FarmListFragment() {
         // Required empty public constructor
@@ -108,6 +110,7 @@ public class FarmListFragment extends DialogFragment{
     public void onDetach() {
         super.onDetach();
     }
+
 
     /**
      * This interface must be implemented by activities that contain this

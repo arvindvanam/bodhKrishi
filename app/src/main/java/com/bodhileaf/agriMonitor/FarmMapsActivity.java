@@ -218,32 +218,37 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
         SQLiteDatabase farmDb = openOrCreateDatabase(dbFileName,MODE_PRIVATE ,null) ;
         Cursor nodeListResults = farmDb.rawQuery("SELECT * FROM nodesInfo",null);
         nodeListResults.moveToFirst();
-        do {
-            Double latLocation = nodeListResults.getDouble(2);
-            Double lonLocation = nodeListResults.getDouble(3);
-            Integer nodeID = nodeListResults.getInt(0);
-            Integer nodeType = nodeListResults.getInt(1);
-            String sensorType = null;
-            Log.d(TAG, "onMapReady: node: lat: "+Double.toString(latLocation)+" long :"+Double.toString(lonLocation) );
-            LatLng addLoc = new LatLng(latLocation,lonLocation);
-            marker_data marker_obj = new marker_data(nodeID,nodeType);
-            switch (nodeType) {
-                case 0: sensorType = "Air Soil Sensor Node";
-                    Marker new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.sensor)));
-                    new_marker.setTag(marker_obj);
-                    break;
-                case 1: sensorType = "Water level Sensor Node";
-                    new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_level)));
-                    new_marker.setTag(marker_obj);
-                    break;
-                case 2: sensorType = "water flow & Actuator Node";
-                    new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType+"\n #"+Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_tap)));
-                    new_marker.setTag(marker_obj);
-                    break;
-                default:
-                    break;
-            }
-        } while(nodeListResults.moveToNext());
+        if(nodeListResults.getCount() >0) {
+            do {
+                Double latLocation = nodeListResults.getDouble(2);
+                Double lonLocation = nodeListResults.getDouble(3);
+                Integer nodeID = nodeListResults.getInt(0);
+                Integer nodeType = nodeListResults.getInt(1);
+                String sensorType = null;
+                Log.d(TAG, "onMapReady: node: lat: " + Double.toString(latLocation) + " long :" + Double.toString(lonLocation));
+                LatLng addLoc = new LatLng(latLocation, lonLocation);
+                marker_data marker_obj = new marker_data(nodeID, nodeType);
+                switch (nodeType) {
+                    case 0:
+                        sensorType = "Air Soil Sensor Node";
+                        Marker new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType + "\n #" + Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.sensor)));
+                        new_marker.setTag(marker_obj);
+                        break;
+                    case 1:
+                        sensorType = "Water level Sensor Node";
+                        new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType + "\n #" + Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_level)));
+                        new_marker.setTag(marker_obj);
+                        break;
+                    case 2:
+                        sensorType = "water flow & Actuator Node";
+                        new_marker = mMap.addMarker(new MarkerOptions().position(addLoc).title(sensorType + "\n #" + Integer.toString(nodeID)).icon(BitmapDescriptorFactory.fromResource(R.drawable.water_tap)));
+                        new_marker.setTag(marker_obj);
+                        break;
+                    default:
+                        break;
+                }
+            } while (nodeListResults.moveToNext());
+        }
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             /** Called when the user clicks a marker. */
