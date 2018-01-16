@@ -21,6 +21,7 @@ public class mqtt_command extends AppCompatActivity {
     private String mqtt_link;
     private String clientId;
     private String dbFilename;
+    private String statsFilename;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,8 +32,15 @@ public class mqtt_command extends AppCompatActivity {
             return;
         }
 // get data via the key
-         dbFilename = extras.getString("filename");
+         dbFilename = extras.getString("configfilename");
+         statsFilename = extras.getString("statsfilename");
+
         if (dbFilename == null) {
+            Log.d(TAG, "onreate: db filename missing" );
+            return;
+            // do something with the data
+        }
+        if (statsFilename == null) {
             Log.d(TAG, "onreate: db filename missing" );
             return;
             // do something with the data
@@ -122,6 +130,8 @@ public class mqtt_command extends AppCompatActivity {
                 Intent mqttCmd = new Intent(mqtt_command.this, com.bodhileaf.agriMonitor.mqtt_cmd_window.class);
                 mqttCmd.putExtra("link",mqtt_link);
                 mqttCmd.putExtra("clientid",clientId);
+                mqttCmd.putExtra("configfilename",dbFilename);
+                mqttCmd.putExtra("statsfilename",statsFilename);
                 startActivity(mqttCmd);
             }
         });
@@ -131,7 +141,9 @@ public class mqtt_command extends AppCompatActivity {
                 Intent mqttGui = new Intent(mqtt_command.this, com.bodhileaf.agriMonitor.MqttGuiActivity.class);
                 mqttGui.putExtra("link",mqtt_link);
                 mqttGui.putExtra("clientid",clientId);
-                mqttGui.putExtra("filename",dbFilename);
+                mqttGui.putExtra("configfilename",dbFilename);
+                mqttGui.putExtra("statsfilename",statsFilename);
+
                 startActivity(mqttGui);
             }
         });

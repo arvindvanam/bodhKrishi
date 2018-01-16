@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,7 +31,29 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.sql.Time;
 import java.text.DateFormat;
@@ -49,8 +73,14 @@ public class LineChartActivity extends LineBase implements OnSeekBarChangeListen
     private Integer nodeId;
     private Integer nodeType;
     private String dbFileName;
+    private String statsFileName;
     private Cursor dataSet;
     SQLiteDatabase agriDB;
+    SQLiteDatabase agriStatsDB;
+    private DriveResourceClient mDriveClient;
+    private Task<Void> getDatabaseUpdateTask;
+    private DriveFile farmDriveFile;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,8 +91,83 @@ public class LineChartActivity extends LineBase implements OnSeekBarChangeListen
         }
 
         nodeId = extras.getInt("nodeId");
-        dbFileName = extras.getString("filename");
+        dbFileName = extras.getString("configfilename");
+        statsFileName = extras.getString("statsfilename");
+        mDriveClient=  Drive.getDriveResourceClient(this, GoogleSignIn.getLastSignedInAccount(this));
+        getDatabaseUpdateTask =
+                mDriveClient.getRootFolder()
+                        .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiDatabases"))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult();
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                String farmName = dbFileName.substring(dbFileName.lastIndexOf("/")+1,dbFileName.lastIndexOf("."))+"_stat.db";
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, farmName))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult().get(0).getDriveId().asDriveFolder();;
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<DriveContents>>() {
+                            @Override
+                            public Task<DriveContents> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                farmDriveFile = task.getResult().get(0).getDriveId().asDriveFile();
+                                return mDriveClient.openFile(farmDriveFile, DriveFile.MODE_READ_WRITE);
+                            }
+                        })
+                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                            @Override
+                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                DriveContents driveContents = task.getResult();
+                                ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+                                File oFile = new File(statsFileName);
+
+                                try {
+                                    InputStream in = new FileInputStream(pfd.getFileDescriptor());
+                                    OutputStream out = new FileOutputStream(oFile);
+                                    MyDatabase.writeExtractedFileToDisk(in,out);
+                                }catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                        .setStarred(true)
+                                        .setLastViewedByMeDate(new Date())
+                                        .build();
+                                Task<Void> commitTask =
+                                        mDriveClient.commitContents(driveContents, changeSet);
+
+                                return commitTask;
+                            }
+                        })
+                        .addOnSuccessListener(this,
+                                new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void avoid) {
+
+                                        Log.d(TAG, "farm config updated into drive");
+                                    }
+                                }
+                        )
+                        .addOnFailureListener(this, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Unable to create folder", e);
+                            }
+                        });
+        Tasks.whenAll(getDatabaseUpdateTask);
         agriDB = openOrCreateDatabase(dbFileName,MODE_PRIVATE ,null);
+        agriStatsDB = openOrCreateDatabase(statsFileName,MODE_PRIVATE ,null);
         String query = String.format("SELECT nodeType FROM nodesInfo where nodeID=%d",nodeId);
         Cursor nodeTypeResult= agriDB.rawQuery(query,null);
         nodeTypeResult.moveToFirst();
@@ -349,7 +454,7 @@ public class LineChartActivity extends LineBase implements OnSeekBarChangeListen
                     long start_time = TimeUnit.HOURS.toSeconds(x);
                     long end_time = TimeUnit.HOURS.toSeconds(x + 1);
                     query = String.format("SELECT AVG(airTemperature),AVG(airHumidity),AVG(soilTemperature),AVG(soilMoisture) FROM sensorData WHERE nodeID=%d AND CAST(strftime('%%s', timestamp) as int) between %d AND %d  ", nodeId, start_time, end_time);
-                    Cursor dataSet = agriDB.rawQuery(query, null);
+                    Cursor dataSet = agriStatsDB.rawQuery(query, null);
                     Log.d(TAG, "setData: query: "+query);
                     dataSet.moveToFirst();
                     //query = String.format("SELECT AVG(airTemperature) FROM sensorData WHERE nodeID=%d AND CAST(strftime('%%s', timestamp) as int) between %d AND %d  ", nodeId, start_time, end_time);

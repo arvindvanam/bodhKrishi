@@ -31,6 +31,7 @@ static int a=0;
 
     private static final int FILE_SELECT_CODE = 0;
     private String dbfilename;
+    private String statsfilename;
     final private String TAG = "OptionsActivity";
 
     /**
@@ -49,7 +50,8 @@ static int a=0;
             return;
         }
 // get data via the key
-        dbfilename  = extras.getString("filename");
+        dbfilename  = extras.getString("configfilename");
+        statsfilename = extras.getString("statsfilename");
         if (dbfilename == null) {
             Log.d(TAG, "onCreate: db filename missing" );
             return;
@@ -69,9 +71,9 @@ static int a=0;
         clickme.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                a++;
-                // Toast.makeText(getApplicationContext(), String.valueOf(a) , Toast.LENGTH_LONG).show();
                 Intent configScreen = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.config.class);
+                configScreen.putExtra("configfilename", dbfilename);
+                configScreen.putExtra("statsfilename", statsfilename);
                 startActivity(configScreen);
                 //setContentView(R.layout.activity_config);
             }
@@ -91,7 +93,8 @@ static int a=0;
                 //DialogFragment newFarmListFragment = new FarmListFragment();
                 //newFarmListFragment.show(getFragmentManager(), "FarmSelect");
                 Intent mapsScreen  = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.FarmMapsActivity.class);
-                mapsScreen.putExtra("filename",dbfilename );
+                mapsScreen.putExtra("configfilename",dbfilename);
+                mapsScreen.putExtra("statsfilename",statsfilename );
                 startActivity(mapsScreen);
                 //Intent mapsScreen  = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.FarmMapsActivity.class);
                 //startActivity(mapsScreen);
@@ -127,7 +130,8 @@ static int a=0;
             @Override
             public void onClick(View v) {
                 Intent mqttScreen = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.mqtt_command.class);
-                mqttScreen.putExtra("filename",dbfilename);
+                mqttScreen.putExtra("configfilename",dbfilename);
+                mqttScreen.putExtra("statsfilename",statsfilename);
                 startActivity(mqttScreen);
 
             }
@@ -138,7 +142,8 @@ static int a=0;
             @Override
             public void onClick(View v) {
                 Intent statsScreen = new Intent(OptionsActivity.this, com.bodhileaf.agriMonitor.StatisticsActivity.class);
-                statsScreen.putExtra("filename",dbfilename);
+                statsScreen.putExtra("configfilename",dbfilename);
+                statsScreen.putExtra("statsfilename",statsfilename);
                 startActivity(statsScreen);
 
             }
@@ -158,10 +163,6 @@ static int a=0;
         // Intent intent = getIntent();
         finish();
         Intent refresh = new Intent(this, OptionsActivity.class);
-
         startActivity(refresh);
-
-
-
     }
 }

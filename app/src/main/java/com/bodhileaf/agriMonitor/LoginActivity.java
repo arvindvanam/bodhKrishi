@@ -3,7 +3,9 @@ package com.bodhileaf.agriMonitor;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -12,6 +14,8 @@ import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.v13.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -72,6 +76,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -95,7 +100,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int RC_SIGN_IN = 100;
 
     private static final int FILE_SELECT_CODE = 99;
-    private String dbfilename;
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 10 ;
+    private String dbfilename=null;
+    private String databasesPath = null;
+    private String statsfilename=null;
     private String farmName=null;
     private DriveFolder curFolder=null;
     private DriveContents curFileContents =null;
@@ -152,8 +160,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case RC_SIGN_IN:
-                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-                handleSignInResult(task);
+
+                GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+                if(account != null) {
+                    updateUI(account);
+                } else {
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                    handleSignInResult(task);
+                }
                 break;
 
             case FILE_SELECT_CODE:
@@ -201,18 +215,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     }
                 }
 
-                break;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG , "on activityresult: exit ");
+
+
+
         if (dbfilename != null) {
             Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
-            optionsScreen.putExtra("filename",dbfilename );
+            optionsScreen.putExtra("configfilename",dbfilename );
+            optionsScreen.putExtra("statsfilename",statsfilename );
             startActivity(optionsScreen);
             //Intent mapsScreen  = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.FarmMapsActivity.class);
             //mapsScreen.putExtra("filename",dbfilename );
             //startActivity(mapsScreen);
         }
+        break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG , "on activityresult: exit ");
     }
     // Sanity check if the opened db is not corrupted and matches the required table schemas
     private boolean qualifyDB(SQLiteDatabase selectDB) {
@@ -254,26 +272,49 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
     // Create new DB which copies table schemas from golden db
     private void createNewDB(String path, String name) {
+        File outDir= new File(getApplicationContext().getApplicationInfo().dataDir+"/"+path+"/");
+        if (!outDir.exists()) { outDir.mkdir(); }
         //copy golden db to the database named by name string at path provided by path String
         MyDatabase myDB = new MyDatabase(getApplicationContext());
         SQLiteDatabase goldenDb = myDB.getDatabase();
         File iFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+"databases/golden.db");
-        File oFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+path+"/"+name);
+        File iFileStats = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+"databases/golden_stat.db");
+        File oFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+path+"/"+name+".db");
+        File oFileStats = new File(getApplicationContext().getApplicationInfo().dataDir+"/"+path+"/"+name+"_stat.db");
+
         InputStream iStream = null;
+        InputStream iStreamStats =null;
+        OutputStream oStream=null;
+        OutputStream oStreamStats=null;
         try {
             iStream = new FileInputStream(iFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        OutputStream oStream=null;
+        try {
+            iStreamStats = new FileInputStream(iFileStats);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         try {
             oStream = new FileOutputStream(oFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         try {
+            oStreamStats = new FileOutputStream(oFileStats);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
 
             myDB.writeExtractedFileToDisk(iStream,oStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+
+            myDB.writeExtractedFileToDisk(iStreamStats,oStreamStats);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -343,13 +384,40 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // Build a GoogleSignInClient with the options specified by gso.
          mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
+
     }
     private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
         try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
             Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
             mEmailSignInButton.setBackgroundResource(R.drawable.quick_signinicon);
+            //Check for location and storage permissions
+            // Here, thisActivity is the current activity
+            if (ContextCompat.checkSelfPermission(LoginActivity.this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
 
+                // Should we show an explanation?
+                if (ActivityCompat.shouldShowRequestPermissionRationale(LoginActivity.this,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                    // Show an explanation to the user *asynchronously* -- don't block
+                    // this thread waiting for the user's response! After the user
+                    // sees the explanation, try again to request the permission.
+
+                } else {
+
+                    // No explanation needed, we can request the permission.
+
+                    ActivityCompat.requestPermissions(LoginActivity.this,
+                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                            MY_PERMISSIONS_REQUEST_LOCATION);
+
+                    // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                    // app-defined int constant. The callback method gets the
+                    // result of the request.
+                }
+            }
             // Signed in successfully, show authenticated UI.
             updateUI(account);
         } catch (ApiException e) {
@@ -636,8 +704,53 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         Log.d("Main Activity", "onFarmSourceSelect: result: "+Integer.toString(result));
         switch (result) {
             case 0:
+                File lastModifiedFile = null;
                 //OPEN LAST USED FARM
                 //GO DIRECTLY TO MAPS ACTIVITY
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    File[] lister = getDataDir().listFiles();
+                    for (File dirlist : lister)
+                    {
+                        if(dirlist.getName().equals("bodhKrishiDatabases")) {
+                            File[] fileLister = dirlist.listFiles();
+
+                            if(fileLister.length > 0) {
+                                lastModifiedFile = fileLister[0];
+                            }
+
+                            for (File filename : fileLister) {
+                                if(!filename.getName().endsWith("stat.db") && filename.getName().endsWith(".db")) {
+                                    long cur_modified_time = filename.lastModified() ;
+                                    if (cur_modified_time > lastModifiedFile.lastModified()) {
+                                        lastModifiedFile = filename;
+                                    }
+
+                                }
+                            }
+                        }
+
+                        //}
+                    }
+                }
+                if(lastModifiedFile == null) {
+                   Toast.makeText(LoginActivity.this,"No Farm was created before. Create Farm first from Menu",Toast.LENGTH_LONG).show();
+                } else {
+                    Log.d(TAG, "Latest modified file is:" + lastModifiedFile.getPath());
+                    dbfilename = lastModifiedFile.getPath();
+                    String file_name = lastModifiedFile.getPath();
+                    if (file_name.indexOf(".") > 0) {
+                        statsfilename = file_name.substring(0, file_name.lastIndexOf(".")) + "_stat.db";
+                    }
+                    Log.d(TAG, "Latest modified config file is:" + dbfilename);
+                    Log.d(TAG, "Latest modified stats file is:" + statsfilename);
+                    Intent mapsScreen  = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.FarmMapsActivity.class);
+                    mapsScreen.putExtra("configfilename",dbfilename );
+                    mapsScreen.putExtra("statsfilename",statsfilename );
+                    startActivity(mapsScreen);
+
+
+                }
+
 
 
                 break;
@@ -645,11 +758,102 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             case 1:
                 if(dbfilename == null) {
-                    showFileChooser();
+                    //showFileChooser();
                 }
+                final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(LoginActivity.this, android.R.layout.select_dialog_singlechoice);
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    File[] lister = getDataDir().listFiles();
+                    for (File dirlist : lister)
+                    {
+                        Log.d(TAG, "Dir list entry:" + dirlist.getName());
+                        //if(dirlist.getName() == "databases") {
+                          //  String[] fileLister = dirlist.list(new FilenameFilter() {
+                          //      @Override
+                          //      public boolean accept(File dir, String name) {
+                          //          return name.endsWith(".db");
+                          //      }
+                          //  });
+                        if(dirlist.getName().equals("bodhKrishiDatabases")) {
+                            File[] fileLister = dirlist.listFiles();
+                            try {
+                                Log.d(TAG,"canonical file path: "+dirlist.getCanonicalPath());
+                                Log.d(TAG,"absolute file path: "+dirlist.getAbsolutePath());
+                                Log.d(TAG," dir path: "+dirlist.getPath());
+                                databasesPath = dirlist.getPath();
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            for (File filename : fileLister) {
+                                if(!filename.getName().endsWith("stat.db") && filename.getName().endsWith(".db")) {
+
+                                    String file_name = filename.getName();
+                                    if (file_name.indexOf(".") > 0) {
+                                        file_name = file_name.substring(0, file_name.lastIndexOf("."));
+
+                                        arrayAdapter.add(file_name);
+                                    }
+                                    Log.d(TAG, "File list entry:" + file_name);
+                                }
+                            }
+                        }
+
+                        //}
+                    }
+                }
+                //File[] lister = mydir.listFiles();
+
 
                 Log.d("main Activity", "onFarmSourceSelect: file chooser done");
+                //create alert dialog box
+                AlertDialog.Builder builderSingle = new AlertDialog.Builder(LoginActivity.this,R.style.MyDialogTheme);
+                builderSingle.setTitle("Choose Farm");
 
+
+                builderSingle.setNegativeButton("cancel", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+                builderSingle.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String strName = arrayAdapter.getItem(which);
+                        AlertDialog.Builder builderInner = new AlertDialog.Builder(LoginActivity.this,R.style.MyDialogTheme);
+                        builderInner.setMessage(strName);
+                        builderInner.setTitle("Your Selected FARM is");
+                        dbfilename = databasesPath+"/"+strName+".db";
+                        statsfilename = databasesPath+"/"+strName+"_stat.db";
+
+                        builderInner.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog,int which) {
+                                dialog.dismiss();
+                                SQLiteDatabase agridb = openOrCreateDatabase(dbfilename,MODE_PRIVATE ,null ) ;
+                                if (!qualifyDB(agridb)) {
+                                    Toast.makeText(getApplicationContext(), "INCORRECT TYPE OF DATABASE. OPEN ANOTHER" , Toast.LENGTH_LONG).show();
+                                    // TODO: return to open db activity;
+                                    Log.d("database tables", "qualifyDB: FAILED");
+                                    return;
+                                }
+                                if (dbfilename != null) {
+                                    Intent optionsScreen = new Intent(LoginActivity.this, com.bodhileaf.agriMonitor.OptionsActivity.class);
+                                    optionsScreen.putExtra("configfilename", dbfilename);
+                                    optionsScreen.putExtra("statsfilename", statsfilename);
+                                    startActivity(optionsScreen);
+                                    agridb.close();
+                                }
+                            }
+                        });
+
+                        builderInner.show();
+
+                    }
+                });
+                builderSingle.show();
 
                 break;
 
@@ -675,12 +879,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         farmName = et_farm_name.getText().toString();
         Log.d(TAG, "onDialogPositiveClick: farmName:"+farmName);
         if(farmName == null) {
-            Toast.makeText(this,"Invalid file name provided",Toast.LENGTH_LONG);
+            Toast.makeText(this,"Invalid file name provided",Toast.LENGTH_LONG).show();
             Log.d(TAG, "onFarmSourceSelect: Invalid file name provided");
             return;
         }
-        createNewDB("databases",farmName+".db");
-        Toast.makeText(this,"farm created"+farmName,Toast.LENGTH_LONG);
+        createNewDB("bodhKrishiDatabases",farmName);
+        Toast.makeText(this,"farm created"+farmName,Toast.LENGTH_LONG).show();
         //TODO: Open create new file dialog box
         //DriveClient mDriveClient = Drive.getDriveClient(this, GoogleSignIn.getLastSignedInAccount(this));
         final DriveResourceClient mDriveClient=  Drive.getDriveResourceClient (this, GoogleSignIn.getLastSignedInAccount(this));
@@ -698,7 +902,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                         @Override
                         public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
                             Query query = new Query.Builder()
-                                    .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiApp"))
+                                    .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiDatabases"))
                                     .build();
                             rootFolder = task.getResult();
                             return mDriveClient.queryChildren(rootFolder,query);
@@ -734,7 +938,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                              if(!folder_found) {
                                  MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                         .setTitle("bodhKrishiApp")
+                                         .setTitle("bodhKrishiDatabases")
                                          .setMimeType(DriveFolder.MIME_TYPE)
                                          .setStarred(true)
                                          .build();
@@ -776,7 +980,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     public Task<DriveFile> then(@NonNull Task<Void> task) throws Exception {
                         curFileContents = createContentsTask.getResult();
                         OutputStream outStream = curFileContents.getOutputStream();
-                        File inFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/databases/" + farmName + ".db");
+                        File inFile = new File(getApplicationContext().getApplicationInfo().dataDir+"/bodhKrishiDatabases/" + farmName + ".db");
                         InputStream inStream = null;
                         if (inFile.exists()) {
                             try {

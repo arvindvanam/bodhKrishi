@@ -2,8 +2,10 @@ package com.bodhileaf.agriMonitor;
 
 import android.app.AlertDialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -20,6 +22,14 @@ import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -96,6 +106,8 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
+    protected static final int REQUEST_CHECK_SETTINGS = 0x1;
+
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
@@ -112,6 +124,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
     private String dbFileName;
+    private String statsFileName;
     private LatLng last_position;
     private Marker cur_marker;
 
@@ -123,8 +136,15 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             return;
         }
 // get data via the key
-        dbFileName  = extras.getString("filename");
+        dbFileName  = extras.getString("configfilename");
+        statsFileName = extras.getString("statsfilename");
+
         if (dbFileName == null) {
+            Log.d(TAG, "onreate: db filename missing" );
+            return;
+            // do something with the data
+        }
+        if (statsFileName == null) {
             Log.d(TAG, "onreate: db filename missing" );
             return;
             // do something with the data
@@ -168,7 +188,46 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
             super.onSaveInstanceState(outState);
         }
     }
+    private void displayLocationSettingsRequest(Context context) {
+        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API).build();
+        googleApiClient.connect();
 
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(10000);
+        locationRequest.setFastestInterval(10000 / 2);
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
+
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.i(TAG, "All location settings are satisfied.");
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        Log.i(TAG, "Location settings are not satisfied. Show the user a dialog to upgrade location settings ");
+
+                        try {
+                            // Show the dialog by calling startResolutionForResult(), and check the result
+                            // in onActivityResult().
+                            status.startResolutionForResult(FarmMapsActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException e) {
+                            Log.i(TAG, "PendingIntent unable to execute request.");
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        Log.i(TAG, "Location settings are inadequate, and cannot be fixed here. Dialog not created.");
+                        break;
+                }
+            }
+        });
+    }
     /**
      * Sets up the options menu.
      * @param menu The options menu.
@@ -202,6 +261,7 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        displayLocationSettingsRequest(FarmMapsActivity.this);
 
         // Prompt the user for permission.
         getLocationPermission();
@@ -263,7 +323,8 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
                 Bundle bundle = new Bundle();
                 bundle.putInt("node_id", marker_info.getNode_id());
                 bundle.putInt("node_type",marker_info.getNode_type());
-                bundle.putString("filename",dbFileName);
+                bundle.putString("configfilename",dbFileName);
+                bundle.putString("statsfilename",statsFileName);
                 // Check if a click count was set, then display the click count.
 
                 DialogFragment newMarkerFragment = new MarkerDialogFragment();
@@ -349,10 +410,16 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
                             mLastKnownLocation = task.getResult();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnownLocation.getLatitude(),
-                                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-                            //mMap.addMarker(new MarkerOptions().position(new LatLng(mLastKnownLocation.getLatitude(),mLastKnownLocation.getLongitude())).title("Marker in Bengaluru"));
+                            // TODO: fix this as returns null if location havent been enabled
+                            if(mLastKnownLocation!=null) {
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                       new LatLng(mLastKnownLocation.getLatitude(),
+                                               mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                            } else {
+                                mMap.moveCamera(CameraUpdateFactory
+                                        .newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                            }
                         } else {
                             Log.d(TAG, "Current location is null. Using defaults.");
                             Log.e(TAG, "Exception: %s", task.getException());
@@ -558,10 +625,10 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
 
         // user clicked OK
 
-        Intent configScreen = new Intent(FarmMapsActivity.this, com.bodhileaf.agriMonitor.config.class);
-        configScreen.putExtra("nodeId",Integer.valueOf(mkNodeid.getText().toString()));
-        configScreen.putExtra("nodeType",mkNodetype.getSelectedItemPosition());
-        configScreen.putExtra("dbFileName",dbFileName);
+        //Intent configScreen = new Intent(FarmMapsActivity.this, com.bodhileaf.agriMonitor.config.class);
+        //configScreen.putExtra("nodeId",Integer.valueOf(mkNodeid.getText().toString()));
+        //configScreen.putExtra("nodeType",Integer.valueOf(mkNodetype.getSelectedItemPosition()));
+        //configScreen.putExtra("configfilename",dbFileName);
         SQLiteDatabase farmDb = openOrCreateDatabase(dbFileName, MODE_PRIVATE ,null) ;
         String nodeCheckQuery = String.format("SELECT * from nodesInfo where nodeID is %d ",Integer.valueOf(mkNodeid.getText().toString()));
         Cursor nodeCheckResult= farmDb.rawQuery(nodeCheckQuery,null);
@@ -605,7 +672,8 @@ public class FarmMapsActivity extends FragmentActivity implements OnMapReadyCall
     public void onBackPressed() {
 
         // TODO Auto-generated method stub
-        getFragmentManager().popBackStack();
+        //getFragmentManager().popBackStack();
+        finish();
     }
 }
 

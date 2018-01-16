@@ -3,6 +3,8 @@ package com.bodhileaf.agriMonitor;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,16 +19,42 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class StatisticsActivity extends AppCompatActivity {
     private static final String TAG = "StatisticsActivity" ;
     private String dbFileName;
+    private String statsFileName;
     private Integer nodeID=0;
     private List<String> nodeList;
     private Integer nodeType=0;
     private SQLiteDatabase agriDb;
+    private SQLiteDatabase agriStatsDb;
     private ArrayAdapter<String> nodeAdapter;
     private Spinner nodeSpinner;
     private Integer listCurPos;
@@ -55,6 +83,9 @@ public class StatisticsActivity extends AppCompatActivity {
     private TextView title_water_level;
     private TextView title_water_flow_rate;
     private TextView title_actuation_status;
+    private DriveResourceClient mDriveClient;
+    private Task<Void> getDatabaseUpdateTask;
+    private DriveFile farmDriveFile;
 
 
     @Override
@@ -66,14 +97,95 @@ public class StatisticsActivity extends AppCompatActivity {
             return;
         }
          // get database filename via the key
-        dbFileName  = extras.getString("filename");
+        dbFileName  = extras.getString("configfilename");
+        statsFileName  = extras.getString("statsfilename");
         nodeID =extras.getInt("nodeId");
         if (dbFileName == null) {
             Log.d(TAG, "oncreate: db filename missing" );
             return;
         }
+        if (statsFileName == null) {
+            Log.d(TAG, "oncreate: db filename missing" );
+            return;
+        }
         Log.d(TAG, "onreate: db filename "+dbFileName );
+        mDriveClient=  Drive.getDriveResourceClient(this, GoogleSignIn.getLastSignedInAccount(this));
+        getDatabaseUpdateTask =
+                mDriveClient.getRootFolder()
+                        .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiDatabases"))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult();
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                String farmName = dbFileName.substring(dbFileName.lastIndexOf("/")+1,dbFileName.lastIndexOf("."))+"_stat.db";
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, farmName))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult().get(0).getDriveId().asDriveFolder();;
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<DriveContents>>() {
+                            @Override
+                            public Task<DriveContents> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                farmDriveFile = task.getResult().get(0).getDriveId().asDriveFile();
+                                return mDriveClient.openFile(farmDriveFile, DriveFile.MODE_READ_WRITE);
+                            }
+                        })
+                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                            @Override
+                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                DriveContents driveContents = task.getResult();
+                                ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+                                File oFile = new File(statsFileName);
+
+                                try {
+                                    InputStream in = new FileInputStream(pfd.getFileDescriptor());
+                                    OutputStream out = new FileOutputStream(oFile);
+                                    MyDatabase.writeExtractedFileToDisk(in,out);
+                                }catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                        .setStarred(true)
+                                        .setLastViewedByMeDate(new Date())
+                                        .build();
+                                Task<Void> commitTask =
+                                        mDriveClient.commitContents(driveContents, changeSet);
+
+                                return commitTask;
+                            }
+                        })
+                        .addOnSuccessListener(this,
+                                new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void avoid) {
+
+                                        Log.d(TAG, "farm config updated into drive");
+                                    }
+                                }
+                        )
+                        .addOnFailureListener(this, new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Unable to create folder", e);
+                            }
+                        });
+        Tasks.whenAll(getDatabaseUpdateTask);
+
         agriDb = openOrCreateDatabase(dbFileName,MODE_PRIVATE,null);
+        agriStatsDb = openOrCreateDatabase(statsFileName,MODE_PRIVATE,null);
+
         initNodeList(agriDb);
 
         //create UI references
@@ -146,7 +258,7 @@ public class StatisticsActivity extends AppCompatActivity {
                         //case where the selected node already existed
                         query = String.format("SELECT airTemperature,airHumidity,soilTemperature,soilMoisture,wifiStrength FROM sensorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
                         Log.d(TAG, "onItemSelected: "+query);
-                        nodeListResults = agriDb.rawQuery(query, null);
+                        nodeListResults = agriStatsDb.rawQuery(query, null);
                         nodeListResults.moveToFirst();
                         iv_air_temp.setVisibility(View.VISIBLE);
                         iv_air_humid.setVisibility(View.VISIBLE);
@@ -203,7 +315,7 @@ public class StatisticsActivity extends AppCompatActivity {
                             val_soil_moisture.setText("");
                             val_wifi_strength.setText("");
 
-                            nodeListResults = agriDb.rawQuery(query, null);
+                            nodeListResults = agriStatsDb.rawQuery(query, null);
                             nodeListResults.moveToFirst();
                             if (nodeListResults.getCount() != 0) {
                                 val_water_level.setText(String.format("%.2f cm",nodeListResults.getFloat(0)));
@@ -238,7 +350,7 @@ public class StatisticsActivity extends AppCompatActivity {
                             Log.d(TAG, "onItemSelected: "+query);
                             title_water_flow_rate.setText("WATER FLOW RATE");
                             title_actuation_status.setText("WATER VALVE STATUS");
-                            nodeListResults = agriDb.rawQuery(query, null);
+                            nodeListResults = agriStatsDb.rawQuery(query, null);
                             nodeListResults.moveToFirst();
                             if (nodeListResults.getCount() != 0) {
                                 val_water_flow_rate.setText(String.format("%.2f L/min",nodeListResults.getFloat(0)));
@@ -247,7 +359,7 @@ public class StatisticsActivity extends AppCompatActivity {
                                 Toast.makeText(getApplicationContext(),"Couldn't find sensor Info",Toast.LENGTH_LONG).show();
                             }
                             query = String.format("SELECT actuationStatus FROM actuatorData WHERE nodeID=%s ORDER BY CAST(strftime('%%s', timestamp) as int) DESC LIMIT 1  ", listEntry);
-                            nodeListResults = agriDb.rawQuery(query, null);
+                            nodeListResults = agriStatsDb.rawQuery(query, null);
                             nodeListResults.moveToFirst();
                             if (nodeListResults.getCount() != 0) {
                                 if(nodeListResults.getInt(0) == 1) {
@@ -276,7 +388,8 @@ public class StatisticsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent hourlyChart = new Intent(StatisticsActivity.this, com.bodhileaf.agriMonitor.LineChartActivity.class);
                 hourlyChart.putExtra("nodeId",nodeID);
-                hourlyChart.putExtra("filename",dbFileName);
+                hourlyChart.putExtra("configfilename",dbFileName);
+                hourlyChart.putExtra("statsfilename",statsFileName);
                 startActivity(hourlyChart);
             }
         });

@@ -46,8 +46,10 @@ public class MqttGuiActivity extends AppCompatActivity {
     }
     private static final String TAG = "mqtt_gui_window";
     private String dbFilename;
+    private String statsFilename;
     private List<String> nodeList;
     private SQLiteDatabase agriDb;
+    private SQLiteDatabase agriStatsDb;
     private ArrayAdapter<String > nodeAdapter;
     private Spinner nodeSpinner;
     private Integer listCurPos;
@@ -68,8 +70,13 @@ public class MqttGuiActivity extends AppCompatActivity {
         if(extras !=null) {
             mqtt_link = extras.getString("link");
             clientId=extras.getString("clientid");
-            dbFilename = extras.getString("filename");
+            dbFilename = extras.getString("configfilename");
+            statsFilename = extras.getString("statsfilename");
             if (dbFilename == null) {
+                Log.d(TAG, "onCreate: db filename missing" );
+                // do something with the data
+            }
+            if (statsFilename == null) {
                 Log.d(TAG, "onCreate: db filename missing" );
                 // do something with the data
             }
@@ -102,8 +109,15 @@ public class MqttGuiActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 // get data via the key
-        dbFilename = extras.getString("filename");
+        dbFilename = extras.getString("configfilename");
+        statsFilename = extras.getString("statsfilename");
+
         if (dbFilename == null) {
+            Log.d(TAG, "onreate: db filename missing" );
+            return;
+            // do something with the data
+        }
+        if (statsFilename == null) {
             Log.d(TAG, "onreate: db filename missing" );
             return;
             // do something with the data
@@ -111,6 +125,8 @@ public class MqttGuiActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_mqtt_gui);
         agriDb = openOrCreateDatabase(dbFilename,android.content.Context.MODE_PRIVATE ,null);
+        agriStatsDb = openOrCreateDatabase(statsFilename,android.content.Context.MODE_PRIVATE ,null);
+
         initNodeList(agriDb);
         nodeSpinner =  findViewById(R.id.valve_nodeid_spinner);
         nodeAdapter = new ArrayAdapter<String>(MqttGuiActivity.this, android.R.layout.simple_spinner_item, nodeList);
@@ -128,7 +144,7 @@ public class MqttGuiActivity extends AppCompatActivity {
                 Log.d(TAG,"Query: "+query);
                 Switch tap_switch = (Switch) findViewById(R.id.tap_switch);
 
-                Cursor actuatorResult = agriDb.rawQuery(query,null);
+                Cursor actuatorResult = agriStatsDb.rawQuery(query,null);
                 if(actuatorResult.getCount() == 0) {
                     //TODO: Actuator status not known  assuming it to be off
                     result = 0;

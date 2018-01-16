@@ -1,8 +1,17 @@
 package layout;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.app.DialogFragment;
@@ -23,11 +32,27 @@ import android.widget.Toast;
 
 
 import com.bodhileaf.agriMonitor.EndDateFragment;
+import com.bodhileaf.agriMonitor.MyDatabase;
 import com.bodhileaf.agriMonitor.R;
 import com.bodhileaf.agriMonitor.StartDateFragment;
 import com.bodhileaf.agriMonitor.TimeFragment;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -47,6 +72,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = config_schedule.class.getSimpleName();
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -61,6 +87,9 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
     private Spinner nodeSpinner;
     private Integer listCurPos;
     private boolean match = false;
+    private DriveResourceClient mDriveClient;
+    private Task<Void> getDatabaseUpdateTask;
+    private DriveFile farmDriveFile;
 
     private OnFragmentInteractionListener mListener;
 
@@ -102,7 +131,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
         }
         nodeId = extras.getInt("nodeId");
         nodeType = extras.getInt("nodeType");
-        dbFileName = extras.getString("dbFileName");
+        dbFileName = extras.getString("configfilename");
         Log.d("schedule frag Node info", "onCreate: nodeid/nodetype "+ String.valueOf(nodeId)+"/"+String.valueOf(nodeType));
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -122,6 +151,78 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
         final EditText startTime = (EditText) view.findViewById(R.id.timePick);
         final EditText scheduleId = (EditText) view.findViewById(R.id.scheduleId);
         final EditText scheduleDuration = (EditText) view.findViewById(R.id.durationInMin);
+        mDriveClient=  Drive.getDriveResourceClient(getActivity(), GoogleSignIn.getLastSignedInAccount(getActivity()));
+        getDatabaseUpdateTask =
+                mDriveClient.getRootFolder()
+                        .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiDatabases"))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult();
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                String farmName = dbFileName.substring(dbFileName.lastIndexOf("/")+1,dbFileName.lastIndexOf("."))+".db";
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, farmName))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult().get(0).getDriveId().asDriveFolder();;
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<DriveContents>>() {
+                            @Override
+                            public Task<DriveContents> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                farmDriveFile = task.getResult().get(0).getDriveId().asDriveFile();
+                                return mDriveClient.openFile(farmDriveFile, DriveFile.MODE_READ_WRITE);
+                            }
+                        })
+                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                            @Override
+                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                DriveContents driveContents = task.getResult();
+                                ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+                                File iFile = new File(dbFileName);
+
+                                try {
+                                    InputStream in = new FileInputStream(iFile);
+                                    OutputStream out = new FileOutputStream(pfd.getFileDescriptor());
+                                    MyDatabase.writeExtractedFileToDisk(in,out);
+                                }catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                        .setStarred(true)
+                                        .setLastViewedByMeDate(new Date())
+                                        .build();
+                                Task<Void> commitTask =
+                                        mDriveClient.commitContents(driveContents, changeSet);
+
+                                return commitTask;
+                            }
+                        })
+                        .addOnSuccessListener(getActivity(),
+                                new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void avoid) {
+
+                                        Log.d(TAG, "farm config updated into drive");
+                                    }
+                                }
+                        )
+                        .addOnFailureListener(getActivity(), new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Unable to create folder", e);
+                            }
+                        });
         startTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -255,6 +356,7 @@ public class config_schedule extends Fragment  implements View.OnClickListener{
                     agriDb.execSQL("INSERT INTO scheduleInfo_temp (dateTimeValue,actuatorNodeId,duration,actionTaken,scheduleId) SELECT dateTimeValue,actuatorNodeId,duration,actionTaken,scheduleId FROM scheduleInfo ORDER BY actuatorNodeId,dateTimeValue ");
                     agriDb.execSQL("drop TABLE scheduleInfo");
                     agriDb.execSQL("ALTER TABLE scheduleInfo_temp RENAME TO scheduleInfo");
+
 
 
                 } catch (ParseException e) {

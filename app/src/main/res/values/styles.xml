@@ -21,5 +21,8 @@
     <style name="CustomDialog" parent="android:Theme.DeviceDefault.Light.Dialog.NoActionBar.MinWidth">
         <item name="android:background">@drawable/gradient</item>
     </style>
+    <style name="MyDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:background">@drawable/gradient</item>
+    </style>
 
 </resources>

@@ -42,6 +42,7 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
     private Integer node_type_selection;
     private Integer n_id,n_type;
     private String dbFileName;
+    private String statsFileName;
     private Activity mActivity;
 
 
@@ -116,8 +117,8 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
             public void onClick(View v) {
                 Intent configScreen = new Intent(v.getContext(), config.class);
                 configScreen.putExtra("nodeId",Integer.valueOf(nodeid.getText().toString()));
-                configScreen.putExtra("nodeType",nodeTypeSpinner.getSelectedItem().toString());
-                configScreen.putExtra("dbFileName",dbFileName);
+                configScreen.putExtra("nodeType",Integer.valueOf(nodeTypeSpinner.getSelectedItemPosition()));
+                configScreen.putExtra("configfilename",dbFileName);
                 startActivity(configScreen);
 
             }
@@ -132,7 +133,8 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
                 String clientId = MqttClient.generateClientId();
                 mqttGui.putExtra("link",mqtt_link);
                 mqttGui.putExtra("clientid",clientId);
-                mqttGui.putExtra("filename",dbFileName);
+                mqttGui.putExtra("configfilename",dbFileName);
+                mqttGui.putExtra("statsfilename",statsFileName);
                 startActivity(mqttGui);
             }
         });
@@ -142,7 +144,8 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
             @Override
             public void onClick(View v) {
                 Intent statsScreen = new Intent(v.getContext(), com.bodhileaf.agriMonitor.StatisticsActivity.class);
-                statsScreen.putExtra("filename",dbFileName);
+                statsScreen.putExtra("configfilename",dbFileName);
+                statsScreen.putExtra("statsfilename",statsFileName);
                 statsScreen.putExtra("nodeId",Integer.valueOf(nodeid.getText().toString()));
                 startActivity(statsScreen);
             }
@@ -208,7 +211,8 @@ public class MarkerDialogFragment extends android.app.DialogFragment {
         if (getArguments() != null) {
                 n_id = getArguments().getInt("node_id");
                 n_type = getArguments().getInt("node_type");
-                dbFileName = getArguments().getString("filename");
+                dbFileName = getArguments().getString("configfilename");
+                statsFileName = getArguments().getString("statsfilename");
 
         }
 

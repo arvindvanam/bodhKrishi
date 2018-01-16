@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.ParcelFileDescriptor;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,9 +21,33 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.bodhileaf.agriMonitor.LoginActivity;
+import com.bodhileaf.agriMonitor.MyDatabase;
 import com.bodhileaf.agriMonitor.R;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.drive.Drive;
+import com.google.android.gms.drive.DriveContents;
+import com.google.android.gms.drive.DriveFile;
+import com.google.android.gms.drive.DriveFolder;
+import com.google.android.gms.drive.DriveResourceClient;
+import com.google.android.gms.drive.MetadataBuffer;
+import com.google.android.gms.drive.MetadataChangeSet;
+import com.google.android.gms.drive.query.Filters;
+import com.google.android.gms.drive.query.Query;
+import com.google.android.gms.drive.query.SearchableField;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -56,11 +82,16 @@ public class config_node_association extends Fragment {
     private int nodeCnt=0;
     private int deleteNodePosition;
     private OnFragmentInteractionListener mListener;
+    private DriveFolder curFolder;
+
     List<String> sensor_list;
     List<String> all_sensor_list;
+    private DriveFile farmDriveFile;
     ArrayAdapter<String> sensorAdapter;
     ArrayAdapter<String> allSensorAdapter;
     HashMap<Integer, Integer> sensorTypeHashList;
+    private  DriveResourceClient mDriveClient;
+    private Task<Void> getDatabaseUpdateTask;
 
 
     public config_node_association() {
@@ -95,7 +126,7 @@ public class config_node_association extends Fragment {
         }
         nodeId = extras.getInt("nodeId");
         nodeType = extras.getInt("nodeType");
-        dbFileName = extras.getString("dbFileName");
+        dbFileName = extras.getString("configfilename");
         Log.d("schedule frag Node info", "onCreate: nodeid/nodetype "+ String.valueOf(nodeId)+"/"+String.valueOf(nodeType));
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -108,7 +139,80 @@ public class config_node_association extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_config_node_association, container, false);
+
         sensor_list = new ArrayList<String>();
+        mDriveClient=  Drive.getDriveResourceClient(getActivity(), GoogleSignIn.getLastSignedInAccount(getActivity()));
+        getDatabaseUpdateTask =
+                mDriveClient.getRootFolder()
+                        .continueWithTask(new Continuation<DriveFolder, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<DriveFolder> task) throws Exception {
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, "bodhKrishiDatabases"))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult();
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<MetadataBuffer>>() {
+                            @Override
+                            public Task<MetadataBuffer> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                String farmName = dbFileName.substring(dbFileName.lastIndexOf("/")+1,dbFileName.lastIndexOf("."))+".db";
+                                Query query = new Query.Builder()
+                                        .addFilter(Filters.eq(SearchableField.TITLE, farmName))
+                                        .build();
+                                DriveFolder rootFolder = task.getResult().get(0).getDriveId().asDriveFolder();;
+                                return mDriveClient.queryChildren(rootFolder,query);
+                            }
+                        })
+                        .continueWithTask(new Continuation<MetadataBuffer, Task<DriveContents>>() {
+                            @Override
+                            public Task<DriveContents> then(@NonNull Task<MetadataBuffer> task) throws Exception {
+                                farmDriveFile = task.getResult().get(0).getDriveId().asDriveFile();
+                                return mDriveClient.openFile(farmDriveFile, DriveFile.MODE_READ_WRITE);
+                            }
+                        })
+                        .continueWithTask(new Continuation<DriveContents, Task<Void>>() {
+                            @Override
+                            public Task<Void> then(@NonNull Task<DriveContents> task) throws Exception {
+                                DriveContents driveContents = task.getResult();
+                                ParcelFileDescriptor pfd = driveContents.getParcelFileDescriptor();
+                                File iFile = new File(dbFileName);
+
+                                try {
+                                    InputStream in = new FileInputStream(iFile);
+                                    OutputStream out = new FileOutputStream(pfd.getFileDescriptor());
+                                    MyDatabase.writeExtractedFileToDisk(in,out);
+                                }catch (FileNotFoundException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                                MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                        .setStarred(true)
+                                        .setLastViewedByMeDate(new Date())
+                                        .build();
+                                Task<Void> commitTask =
+                                        mDriveClient.commitContents(driveContents, changeSet);
+
+                                return commitTask;
+                            }
+                        })
+                        .addOnSuccessListener(getActivity(),
+                                new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void avoid) {
+
+                                        Log.d(TAG, "farm config updated into drive");
+                                    }
+                                }
+                        )
+                        .addOnFailureListener(getActivity(), new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.e(TAG, "Unable to create folder", e);
+                            }
+                        });
         sensorTypeHashList = new HashMap<Integer, Integer>();
         agriDb = getActivity().openOrCreateDatabase(dbFileName, android.content.Context.MODE_PRIVATE, null);
         initNodeList(agriDb);
@@ -138,8 +242,13 @@ public class config_node_association extends Fragment {
                     nodeListResults.moveToFirst();
                     if (nodeListResults.getCount() == 0) {
                         nodeCnt=0;
-                        Toast.makeText(view.getContext(), "No associated nodes", Toast.LENGTH_LONG).show();
-
+                        //Context curContext=view.getContext();
+                        //if(curContext == null) {
+                          Context  curContext = getActivity();
+                        //}
+                        if(curContext != null) {
+                            Toast.makeText(curContext, "No associated nodes", Toast.LENGTH_SHORT).show();
+                        }
                     } else {
                         //select the node count from the result
                         nodeCnt = nodeListResults.getInt(1);
@@ -203,6 +312,7 @@ public class config_node_association extends Fragment {
                 Log.d(TAG, "add sensor onClick query: "+query);
                 agriDb.execSQL(query);
                 sensorAdapter.notifyDataSetChanged();
+                getDatabaseUpdateTask.getResult();
             }
         });
         // Inflate the layout for this fragment
@@ -233,6 +343,11 @@ public class config_node_association extends Fragment {
                     sensor_list.remove(deleteNodePosition);
                     sensorTypeHashList.remove(deleteNodePosition);
                     sensorAdapter.notifyDataSetChanged();
+                    getDatabaseUpdateTask.getResult();
+
+                   // Task<DriveContents> openTask =
+                     //       mDriveClient.openFile(file, DriveFile.MODE_READ_WRITE);
+
                 }
             });
             //builder.setNegativeButton("Navigate to farm", new DialogInterface.OnClickListener() {
@@ -286,17 +401,19 @@ public class config_node_association extends Fragment {
         //check if the schedule id exists for the node id
         Cursor nodeListResults = agriDb.rawQuery(query,null);
         nodeListResults.moveToFirst();
-        do {
+        if(nodeListResults.getCount() >0 ) {
+            do {
 
-            Integer nodeID_from_list = nodeListResults.getInt(0);
-            if (nodeId == nodeID_from_list) {
-                match = true;
-                listCurPos = curPos;
-            }
-            nodeList.add(nodeID_from_list.toString());
-            Log.d("node association", "NodeList: "+nodeID_from_list.toString());
-            curPos++;
-        } while(nodeListResults.moveToNext());
+                Integer nodeID_from_list = nodeListResults.getInt(0);
+                if (nodeId == nodeID_from_list) {
+                    match = true;
+                    listCurPos = curPos;
+                }
+                nodeList.add(nodeID_from_list.toString());
+                Log.d("node association", "NodeList: " + nodeID_from_list.toString());
+                curPos++;
+            } while (nodeListResults.moveToNext());
+        }
         nodeListResults.close();
         if(match == false) {
             listCurPos = curPos;
@@ -306,10 +423,12 @@ public class config_node_association extends Fragment {
         //check if the schedule id exists for the node id
         Cursor sensorListResults = agriDb.rawQuery(query,null);
         sensorListResults.moveToFirst();
-        do {
-            Integer nodeID_from_list = sensorListResults.getInt(0);
-            all_sensor_list.add(nodeID_from_list.toString());
-        } while (sensorListResults.moveToNext());
+        if(sensorListResults.getCount()>0) {
+            do {
+                Integer nodeID_from_list = sensorListResults.getInt(0);
+                all_sensor_list.add(nodeID_from_list.toString());
+            } while (sensorListResults.moveToNext());
+        }
     }
     /**
      * This interface must be implemented by activities that contain this
